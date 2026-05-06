@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
 using TicketMaster.Application.Interfaces;
 using TicketMaster.Domain.Entities;
+using TicketMaster.Domain.Exceptions;
 
 namespace TicketMaster.Application.Services;
 
@@ -13,53 +13,52 @@ public class TicketService
         _ticketRepository = ticketRepository;
     }
 
-    //==================================================================
-    // Reserva de Assento - Fluxo Completo (Infraestrutura + Domínio)
-    //==================================================================
+    public async Task<IEnumerable<Ticket>> ObterTodosAsync()
+    {
+        return await _ticketRepository.ObterTodosAsync();
+    }
+
+    /// <summary>
+    /// Reserva um assento para o usuário informado.
+    /// Retorna falha se o assento não existir, já estiver ocupado ou houver conflito de concorrência.
+    /// </summary>
     public async Task<Result> ReservarAssentoAsync(string assentoCodigo, Guid usuarioId)
     {
-        // R1: Pede para a Infraestrutura buscar o dado no banco
         var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo);
 
         if (ticket == null)
             return Result.Failure("Assento não encontrado no sistema.");
 
-        // R2: Pede para o Domínio executar a Regra de Negócio (em memória)
-        var resultadoReserva = ticket.Reservar(usuarioId);
+        var resultado = ticket.Reservar(usuarioId);
 
-        // Se a regra de negocio falhar (ex: ingresso já estava vendido), paramos por aqui.
-        if (!resultadoReserva.IsSuccess)
-            return resultadoReserva;
+        if (!resultado.IsSuccess)
+            return resultado;
 
         try
         {
-            // R3: Se deu tudo certo no dominio, manda a Infraestrutura salvar o novo estado no banco
             await _ticketRepository.AtualizarAsync(ticket);
             return Result.Success();
         }
-        catch (DbUpdateConcurrencyException)
+        catch (ConcurrencyException)
         {
             return Result.Failure("Poxa! Outra pessoa acabou de reservar este assento na sua frente. Por favor, escolha outro.");
         }
     }
 
-    //====================================================================================
-    // Expiração de Reservas Vencidas - Fluxo Completo (Infraestrutura + Domínio)
-    //====================================================================================
+    /// <summary>
+    /// Libera todos os ingressos com reservas expiradas, devolvendo-os ao estoque.
+    /// Chamado periodicamente pelo <see cref="Web.Workers.TicketReaperWorker"/>.
+    /// </summary>
     public async Task ExpirarReservasVencidasAsync()
     {
         var ingressosVencidos = await _ticketRepository.ObterReservasVencidasAsync();
 
         foreach (var ticket in ingressosVencidos)
         {
-            // 1. Chama a regra de negócio do Domínio (que você criou lindamente)
             var resultado = ticket.ExpirarReserva();
 
             if (resultado.IsSuccess)
-            {
-                // 2. Manda o repositório salvar o novo status e a nova "Versao" (Guid) no banco
                 await _ticketRepository.AtualizarAsync(ticket);
-            }
         }
     }
 }

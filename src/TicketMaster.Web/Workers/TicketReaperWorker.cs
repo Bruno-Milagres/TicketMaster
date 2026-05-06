@@ -1,11 +1,15 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using TicketMaster.Application.Services;
 
 namespace TicketMaster.Web.Workers;
 
+/// <summary>
+/// Background service que libera periodicamente os ingressos com reservas expiradas,
+/// devolvendo-os ao estoque para que outros usuários possam reservá-los.
+/// </summary>
 public class TicketReaperWorker : BackgroundService
 {
+    private static readonly TimeSpan Intervalo = TimeSpan.FromMinutes(1);
+
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<TicketReaperWorker> _logger;
 
@@ -15,27 +19,19 @@ public class TicketReaperWorker : BackgroundService
         _logger = logger;
     }
 
-    // Este método fica rodando em um loop infinito silencioso
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("💀 Reaper de Ingressos iniciado!");
+        _logger.LogInformation("Reaper de ingressos iniciado.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("[{Time:HH:mm:ss}] Varrendo ingressos vencidos...", DateTime.Now);
+            _logger.LogInformation("[{Time:HH:mm:ss}] Varrendo ingressos com reserva expirada...", DateTime.Now);
 
-            // Criamos um "Escopo" artificial (como se fosse um usuário clicando)
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                // Pedimos o TicketService para o Escopo
-                var ticketService = scope.ServiceProvider.GetRequiredService<TicketService>();
+            using var scope = _serviceProvider.CreateScope();
+            var ticketService = scope.ServiceProvider.GetRequiredService<TicketService>();
+            await ticketService.ExpirarReservasVencidasAsync();
 
-                // Executamos a limpeza
-                await ticketService.ExpirarReservasVencidasAsync();
-            }
-
-            // O Robô dorme por 20 segundos e acorda de novo (trocar para FromMinutes(5))
-            await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
+            await Task.Delay(Intervalo, stoppingToken);
         }
     }
 }
