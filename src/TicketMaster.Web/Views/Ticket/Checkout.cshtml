@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Checkout";
+    // Pegando o parâmetro ?codigo=A1 que o nosso Controller enviou na URL
+    var assentoCodigo = Context.Request.Query["codigo"];
+}
+
+<div class="container mt-5 text-center">
+    <h2 class="mb-4">💳 Finalizar Compra</h2>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success fs-5 shadow-sm">
+            @TempData["Sucesso"]
+        </div>
+    }
+
+    <div class="card mx-auto shadow" style="max-width: 400px;">
+        <div class="card-body">
+            <h3>Assento: <span class="text-primary fw-bold">@assentoCodigo</span></h3>
+            <hr />
+            <p class="text-muted">O ingresso está reservado. Você tem 15 minutos para pagar antes que a reserva expire e ele volte a ficar disponível.</p>
+
+            <button class="btn btn-success w-100 mb-3 fs-5">Simular Pagamento (Em breve)</button>
+
+            <a asp-controller="Ticket" asp-action="Index" class="btn btn-outline-secondary w-100">Voltar ao Mapa de Assentos</a>
+        </div>
+    </div>
+</div>
