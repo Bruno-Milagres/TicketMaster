@@ -6,6 +6,10 @@ using TicketMaster.Web.Hubs;
 
 namespace TicketMaster.Web.Consumers;
 
+/// <summary>
+/// Consumidor MassTransit responsável por processar comandos de pagamento recebidos do RabbitMQ.
+/// Confirma o pagamento no domínio e notifica os clientes conectados via SignalR.
+/// </summary>
 public class PagamentoCommandConsumer : IConsumer<PagamentoCommand>
 {
     private readonly TicketService _ticketService;
@@ -22,13 +26,17 @@ public class PagamentoCommandConsumer : IConsumer<PagamentoCommand>
         _logger = logger;
     }
 
+    /// <summary>
+    /// Processa um <see cref="PagamentoCommand"/> da fila:
+    /// confirma o pagamento e, em caso de sucesso, notifica apenas os clientes
+    /// do grupo do evento correspondente via SignalR.
+    /// </summary>
     public async Task Consume(ConsumeContext<PagamentoCommand> context)
     {
         var comando = context.Message;
-        _logger.LogInformation("Lendo da Fila: Processando pagamento do assento {AssentoCodigo} do evento {EventId}",
+        _logger.LogInformation("Processando pagamento do assento {AssentoCodigo} do evento {EventId}",
             comando.AssentoCodigo, comando.EventId);
 
-        // Agora passamos o terceiro parâmetro!
         var resultado = await _ticketService.ConfirmarPagamentoAsync(
             comando.AssentoCodigo,
             comando.UsuarioId,
@@ -36,15 +44,15 @@ public class PagamentoCommandConsumer : IConsumer<PagamentoCommand>
 
         if (resultado.IsSuccess)
         {
-            // MUDANÇA SENIOR: Em vez de All (todos), enviamos apenas para o Grupo do Evento!
             await _hubContext.Clients.Group(comando.EventId.ToString())
                 .SendAsync("AtualizarAssento", comando.AssentoCodigo, "Vendido");
 
-            _logger.LogInformation("Sucesso! Assento {AssentoCodigo} vendido.", comando.AssentoCodigo);
+            _logger.LogInformation("Assento {AssentoCodigo} confirmado como vendido.", comando.AssentoCodigo);
         }
         else
         {
-            _logger.LogWarning("Falha ao processar pagamento do {AssentoCodigo}: {Erro}", comando.AssentoCodigo, resultado.ErrorMessage);
+            _logger.LogWarning("Falha ao processar pagamento do assento {AssentoCodigo}: {Erro}",
+                comando.AssentoCodigo, resultado.ErrorMessage);
         }
     }
 }

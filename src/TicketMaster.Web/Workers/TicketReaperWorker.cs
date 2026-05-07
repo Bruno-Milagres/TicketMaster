@@ -33,13 +33,11 @@ public class TicketReaperWorker : BackgroundService
             {
                 var ticketService = scope.ServiceProvider.GetRequiredService<TicketService>();
 
-                // Pega a lista de quem foi limpo
                 var assentosLiberados = await ticketService.ExpirarReservasVencidasAsync();
 
-                // Para cada assento liberado, o Worker grita no SignalR!
                 foreach (var assentoCodigo in assentosLiberados)
                 {
-                    _logger.LogInformation("Liberando assento {AssentoCodigo} via SignalR...", assentoCodigo);
+                    _logger.LogInformation("Assento {AssentoCodigo} liberado por expiração de reserva.", assentoCodigo);
                     await _hubContext.Clients.All.SendAsync("AtualizarAssento", assentoCodigo, "Livre");
                 }
             }
