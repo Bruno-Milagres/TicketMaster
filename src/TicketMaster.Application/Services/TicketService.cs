@@ -23,9 +23,9 @@ public class TicketService
     /// Reserva um assento para o usuário informado.
     /// Retorna falha se o assento não existir, já estiver ocupado ou houver conflito de concorrência.
     /// </summary>
-    public async Task<Result> ReservarAssentoAsync(string assentoCodigo, Guid usuarioId)
+    public async Task<Result> ReservarAssentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
     {
-        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo);
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
 
         if (ticket == null)
             return Result.Failure("Assento não encontrado no sistema.");
@@ -50,25 +50,32 @@ public class TicketService
     /// Libera todos os ingressos com reservas expiradas, devolvendo-os ao estoque.
     /// Chamado periodicamente pelo <see cref="Web.Workers.TicketReaperWorker"/>.
     /// </summary>
-    public async Task ExpirarReservasVencidasAsync()
+    public async Task<List<string>> ExpirarReservasVencidasAsync()
     {
         var ingressosVencidos = await _ticketRepository.ObterReservasVencidasAsync();
+        var assentosLiberados = new List<string>();
 
         foreach (var ticket in ingressosVencidos)
         {
             var resultado = ticket.ExpirarReserva();
 
             if (resultado.IsSuccess)
+            {
                 await _ticketRepository.AtualizarAsync(ticket);
+
+                assentosLiberados.Add(ticket.AssentoCodigo);
+            }
         }
+
+        return assentosLiberados;
     }
 
     /// <summary>
     /// Confirma o pagamento de um ingresso reservado, associando-o ao usuário e marcando-o como vendido.
     /// </summary>
-    public async Task<Result> ConfirmarPagamentoAsync(string assentoCodigo, Guid usuarioId)
+    public async Task<Result> ConfirmarPagamentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
     {
-        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo);
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
         if (ticket == null)
             return Result.Failure("Assento não encontrado no sistema.");
         var resultado = ticket.ConfirmarPagamento(usuarioId);

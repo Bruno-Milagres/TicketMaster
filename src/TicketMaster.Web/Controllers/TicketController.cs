@@ -1,17 +1,25 @@
+using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using TicketMaster.Application.Messages;
 using TicketMaster.Application.Services;
+using TicketMaster.Web.Hubs;
 
 namespace TicketMaster.Web.Controllers;
 
 public class TicketController : Controller
 {
     private readonly TicketService _ticketService;
+    private readonly IHubContext<TicketHub> _hubContext;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public TicketController(TicketService ticketService)
+    public TicketController(TicketService ticketService, IHubContext<TicketHub> hubContext, IPublishEndpoint publishEndpoint)
     {
         _ticketService = ticketService;
+        _hubContext = hubContext;
+        _publishEndpoint = publishEndpoint;
     }
 
     [HttpGet]
@@ -21,14 +29,33 @@ public class TicketController : Controller
         return View(tickets);
     }
 
-    //==================================================================
-    // O PARA-QUEDAS DO LOGIN
-    // Se o usuario for redirecionado para ca via GET apas o login
-    //==================================================================
+    /// <summary>
+    /// Redireciona para a listagem de ingressos caso o usuário chegue via GET
+    /// após ser redirecionado pelo fluxo de login.
+    /// </summary>
     [HttpGet]
     public IActionResult Reservar()
     {
         return RedirectToAction("Index");
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var usuarioLogadoId = Guid.Parse(userIdString!);
+
+        var resultado = await _ticketService.ReservarAssentoAsync(assentoCodigo, usuarioLogadoId, eventId);
+
+        if (!resultado.IsSuccess)
+        {
+            TempData["Erro"] = resultado.ErrorMessage;
+            return RedirectToAction("Index");
+        }
+
+        await _hubContext.Clients.All.SendAsync("AtualizarAssento", assentoCodigo, "Reservado");
+        return RedirectToAction("Checkout", new { codigo = assentoCodigo });
     }
 
     [HttpGet]
@@ -39,45 +66,23 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Reservar(string assentoCodigo)
+    public async Task<IActionResult> Pagar(string assentoCodigo, Guid eventId)
     {
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuarioLogadoId = Guid.Parse(userIdString!);
 
-        var resultado = await _ticketService.ReservarAssentoAsync(assentoCodigo, usuarioLogadoId);
+        var comando = new PagamentoCommand(assentoCodigo, usuarioLogadoId, eventId);
 
-        if (!resultado.IsSuccess)
-        {
-            TempData["Erro"] = resultado.ErrorMessage;
-            return RedirectToAction("Index");
-        }
+        await _publishEndpoint.Publish(comando);
 
-        TempData["Sucesso"] = $"Assento {assentoCodigo} reservado! Você tem 15 minutos para finalizar a compra.";
-        return RedirectToAction("Checkout", new { codigo = assentoCodigo });
-    }
+        TempData["Sucesso"] = $"Seu pedido de pagamento para o assento {assentoCodigo} foi para a fila. Aguarde a confirmação no mapa!";
 
-    [Authorize]
-    [HttpPost]
-    public async Task<IActionResult> Pagar(string assentoCodigo)
-    {
-        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var usuarioLogadoId = Guid.Parse(userIdString!);
-
-        var resultado = await _ticketService.ConfirmarPagamentoAsync(assentoCodigo, usuarioLogadoId);
-
-        if (!resultado.IsSuccess)
-        {
-            TempData["Erro"] = resultado.ErrorMessage;
-            return RedirectToAction("Index");
-        }
-
-        TempData["Sucesso"] = $"Pagamento confirmado para o assento {assentoCodigo}!";
         return RedirectToAction("Index");
     }
 
     [HttpGet]
     public IActionResult Checkout(string codigo)
     {
-        return View();
+        return View((object)codigo);
     }
 }

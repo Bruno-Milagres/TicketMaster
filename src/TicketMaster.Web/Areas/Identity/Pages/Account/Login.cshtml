@@ -4,46 +4,59 @@
     ViewData["Title"] = "Entrar";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow-lg border-0 rounded-lg mt-5">
-                <div class="card-header bg-primary text-white text-center py-3">
-                    <h3 class="font-weight-light my-2">🎟️ Bem-vindo de volta</h3>
-                </div>
-                <div class="card-body p-4">
-                    <form id="account" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+<div class="auth-wrapper">
+    <div class="auth-card">
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="nome@exemplo.com" />
-                            <label asp-for="Input.Email">E-mail</label>
-                            <span asp-validation-for="Input.Email" class="text-danger text-sm"></span>
-                        </div>
+        <span class="auth-icon">
+            <i class="fa-solid fa-ticket"></i>
+        </span>
+        <h1 class="auth-title">Bem-vindo de volta</h1>
+        <p class="auth-subtitle">Entre com sua conta para continuar</p>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="senha" />
-                            <label asp-for="Input.Password">Senha</label>
-                            <span asp-validation-for="Input.Password" class="text-danger text-sm"></span>
-                        </div>
+        <form id="account" method="post" autocomplete="on">
+            <div asp-validation-summary="ModelOnly" class="validation-summary-errors" role="alert"></div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" asp-for="Input.RememberMe" />
-                            <label class="form-check-label" asp-for="Input.RememberMe">Lembrar minha conta</label>
-                        </div>
-
-                        <div class="d-grid gap-2 mt-4 mb-0">
-                            <button id="login-submit" type="submit" class="btn btn-primary btn-lg">Entrar no Sistema</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="card-footer text-center py-3 bg-light">
-                    <div class="small">
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none fw-bold">Não tem uma conta? Registre-se!</a>
-                    </div>
-                </div>
+            <div class="field-group">
+                <label asp-for="Input.Email" class="field-label">
+                    <i class="fa-regular fa-envelope me-1"></i>E-mail
+                </label>
+                <input asp-for="Input.Email"
+                       class="field-input"
+                       autocomplete="username"
+                       aria-required="true"
+                       placeholder="voce@exemplo.com" />
+                <span asp-validation-for="Input.Email" class="field-error"></span>
             </div>
+
+            <div class="field-group">
+                <label asp-for="Input.Password" class="field-label">
+                    <i class="fa-solid fa-lock me-1"></i>Senha
+                </label>
+                <input asp-for="Input.Password"
+                       class="field-input"
+                       autocomplete="current-password"
+                       aria-required="true"
+                       placeholder="••••••••" />
+                <span asp-validation-for="Input.Password" class="field-error"></span>
+            </div>
+
+            <div class="remember-row">
+                <input class="form-check-input" asp-for="Input.RememberMe" />
+                <label asp-for="Input.RememberMe">Lembrar minha conta</label>
+            </div>
+
+            <button id="login-submit" type="submit" class="btn-auth">
+                <i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Entrar
+            </button>
+        </form>
+
+        <div class="auth-divider">ou</div>
+
+        <div class="auth-footer">
+            Não tem uma conta?&nbsp;
+            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Registre-se</a>
         </div>
+
     </div>
 </div>
 

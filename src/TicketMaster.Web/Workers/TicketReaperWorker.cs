@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.SignalR;
 using TicketMaster.Application.Services;
+using TicketMaster.Web.Hubs;
 
 namespace TicketMaster.Web.Workers;
 
@@ -12,11 +14,13 @@ public class TicketReaperWorker : BackgroundService
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<TicketReaperWorker> _logger;
+    private readonly IHubContext<TicketHub> _hubContext;
 
-    public TicketReaperWorker(IServiceProvider serviceProvider, ILogger<TicketReaperWorker> logger)
+    public TicketReaperWorker(IServiceProvider serviceProvider, ILogger<TicketReaperWorker> logger, IHubContext<TicketHub> hubContext)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,12 +29,18 @@ public class TicketReaperWorker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("[{Time:HH:mm:ss}] Varrendo ingressos com reserva expirada...", DateTime.Now);
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var ticketService = scope.ServiceProvider.GetRequiredService<TicketService>();
 
-            using var scope = _serviceProvider.CreateScope();
-            var ticketService = scope.ServiceProvider.GetRequiredService<TicketService>();
-            await ticketService.ExpirarReservasVencidasAsync();
+                var assentosLiberados = await ticketService.ExpirarReservasVencidasAsync();
 
+                foreach (var assentoCodigo in assentosLiberados)
+                {
+                    _logger.LogInformation("Assento {AssentoCodigo} liberado por expiração de reserva.", assentoCodigo);
+                    await _hubContext.Clients.All.SendAsync("AtualizarAssento", assentoCodigo, "Livre");
+                }
+            }
             await Task.Delay(Intervalo, stoppingToken);
         }
     }

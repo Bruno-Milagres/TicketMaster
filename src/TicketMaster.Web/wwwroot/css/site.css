@@ -1,31 +1,668 @@
+/* ==============================================
+   CSS CUSTOM PROPERTIES (TEMA)
+   ============================================== */
+:root {
+  --color-bg:          #f5f4f1;
+  --color-surface:     #ffffff;
+  --color-surface-alt: #fafaf8;
+  --color-text:        #1a1a1a;
+  --color-text-muted:  #777;
+  --color-border:      #e4e4e0;
+  --color-accent:      #1a1a1a;
+  --color-accent-hover:#333;
+  --color-danger:      #d94f4f;
+  --color-success:     #2d8a4e;
+  --color-warning:     #b57a00;
+  --color-navbar-bg:   rgba(255, 255, 255, 0.9);
+  --color-footer-bg:   #eeebe4;
+  --auth-bg-image:     url('/img/backgroud_sun.png');
+  --shadow-card:       0 2px 24px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-navbar:     0 1px 12px rgba(0,0,0,0.06);
+  --radius-card:       20px;
+  --radius-input:      10px;
+  --transition:        0.2s ease;
+  --font-sans:         'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-serif:        'DM Serif Display', Georgia, serif;
+}
+
+[data-theme="dark"] {
+  --color-bg:          #0e0e0e;
+  --color-surface:     rgba(24, 24, 24, 0.92);
+  --color-surface-alt: #151515;
+  --color-text:        #eeeeee;
+  --color-text-muted:  #888;
+  --color-border:      #2a2a2a;
+  --color-accent:      #eeeeee;
+  --color-accent-hover:#cccccc;
+  --color-navbar-bg:   rgba(14, 14, 14, 0.93);
+  --color-footer-bg:   #0a0a0a;
+  --auth-bg-image:     url('/img/backgroud_moon.png');
+  --shadow-card:       0 2px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-navbar:     0 1px 16px rgba(0,0,0,0.3);
+}
+
+/* ==============================================
+   RESET / BASE
+   ============================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
 html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
+  font-size: 16px;
+  scroll-behavior: smooth;
   position: relative;
   min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
+/* ==============================================
+   TIPOGRAFIA
+   ============================================== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+p { color: var(--color-text); }
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover { color: var(--color-accent-hover); }
+
+/* ==============================================
+   NAVBAR
+   ============================================== */
+.tm-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-navbar-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-navbar);
+  padding: 0.55rem 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.tm-navbar .navbar-brand {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tm-navbar .navbar-brand:hover { color: var(--color-text-muted); }
+
+.tm-navbar .nav-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  transition: color var(--transition), background var(--transition);
+}
+
+.tm-navbar .nav-link:hover,
+.tm-navbar .nav-link.active {
+  color: var(--color-text);
+  background: rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] .tm-navbar .nav-link:hover,
+[data-theme="dark"] .tm-navbar .nav-link.active {
+  background: rgba(255,255,255,0.07);
+}
+
+.tm-navbar .navbar-toggler {
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  background: transparent;
+  transition: background var(--transition);
+}
+
+.tm-navbar .navbar-toggler:hover { background: rgba(0,0,0,0.05); }
+.tm-navbar .navbar-toggler:focus { box-shadow: none; outline: none; }
+
+/* Botão de alternância de tema */
+.btn-theme-toggle {
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.35rem 0.65rem;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1;
+}
+
+.btn-theme-toggle:hover { background: rgba(0,0,0,0.06); }
+[data-theme="dark"] .btn-theme-toggle:hover { background: rgba(255,255,255,0.07); }
+
+/* Ícones de sol/lua conforme tema */
+.icon-light { display: inline-block; }
+.icon-dark  { display: none; }
+[data-theme="dark"] .icon-light { display: none; }
+[data-theme="dark"] .icon-dark  { display: inline-block; }
+
+/* Link-botão da navbar (Sair) */
+.btn-link-nav {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.4rem 0.7rem;
+  color: var(--color-text-muted);
+  border-radius: 8px;
+  transition: color var(--transition), background var(--transition);
+}
+
+.btn-link-nav:hover {
+  color: var(--color-text);
+  background: rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] .btn-link-nav:hover { background: rgba(255,255,255,0.07); }
+
+/* ==============================================
+   MAIN CONTENT
+   ============================================== */
+main { flex: 1; }
+
+/* ==============================================
+   FOOTER
+   ============================================== */
+.tm-footer {
+  background: var(--color-footer-bg);
+  border-top: 1px solid var(--color-border);
+  padding: 1.1rem 0;
+  font-size: 0.83rem;
+  color: var(--color-text-muted);
+  transition: background var(--transition), border-color var(--transition);
+  margin-top: auto;
+}
+
+.tm-footer a {
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--transition);
+}
+
+.tm-footer a:hover { color: var(--color-text); }
+
+/* ==============================================
+   CARDS (Bootstrap override)
+   ============================================== */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+/* ==============================================
+   BOTÕES (Bootstrap override)
+   ============================================== */
+.btn:focus, .btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem var(--color-bg), 0 0 0 0.25rem var(--color-accent);
+  outline: none;
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-bg);
+  border-radius: var(--radius-input);
+  font-weight: 500;
+  transition: background var(--transition), transform 0.15s ease, box-shadow var(--transition);
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  color: var(--color-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+
+.btn-outline-secondary {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  border-radius: var(--radius-input);
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition);
+}
+
+.btn-outline-secondary:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.btn-success { border-radius: var(--radius-input); font-weight: 500; }
+
+/* ==============================================
+   ALERTAS (Bootstrap override)
+   ============================================== */
+.alert { border-radius: 12px; font-size: 0.9rem; }
+
+/* ==============================================
+   BADGES (Bootstrap override)
+   ============================================== */
+.badge {
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.78rem;
+  padding: 0.4em 0.75em;
+}
+
+/* ==============================================
+   TELAS DE AUTH (Login / Registro)
+   ============================================== */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: var(--auth-bg-image);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  font-family: var(--font-sans);
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-card);
+  padding: 3rem 2.5rem;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.3);
+  animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+[data-theme="dark"] .auth-card {
+  background: rgba(18, 18, 18, 0.8);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.auth-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: var(--color-text);
+  animation: slideUp 0.5s 0.05s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-title {
+  font-family: var(--font-serif);
+  font-size: 1.9rem;
+  color: var(--color-text);
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+  animation: slideUp 0.5s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  animation: slideUp 0.5s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.field-group {
+  position: relative;
+  margin-bottom: 1.1rem;
+  animation: slideUp 0.5s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.field-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.65);
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+  outline: none;
+}
+
+[data-theme="dark"] .field-input {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.field-input:focus {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(26,26,26,0.08);
+}
+
+[data-theme="dark"] .field-input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.07);
+}
+
+.field-input::placeholder { color: #aaa; }
+
+.field-error {
+  font-size: 0.78rem;
+  color: var(--color-danger);
+  margin-top: 0.3rem;
+  display: block;
+}
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.6rem;
+  animation: slideUp 0.5s 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.remember-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.remember-row label {
+  font-size: 0.87rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  margin: 0;
+}
+
+.btn-auth {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border: none;
+  border-radius: var(--radius-input);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background var(--transition), transform 0.15s ease, box-shadow var(--transition);
+  animation: slideUp 0.5s 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.btn-auth:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.btn-auth:active { transform: translateY(0); box-shadow: none; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 2rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  animation: slideUp 0.5s 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.8rem;
+  font-size: 0.87rem;
+  color: var(--color-text-muted);
+  animation: slideUp 0.5s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-footer a {
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
+  transition: border-color var(--transition);
+}
+
+.auth-footer a:hover { border-color: var(--color-text); }
+
+.validation-summary-errors ul {
+  list-style: none;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  font-size: 0.83rem;
+  color: var(--color-danger);
+  background: rgba(217, 79, 79, 0.08);
+  border: 1px solid rgba(217, 79, 79, 0.25);
+  border-radius: 8px;
+}
+
+.btn-external {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  background: var(--color-surface-alt);
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), transform 0.15s ease;
+  margin: 0.25rem 0.3rem 0.25rem 0;
+}
+
+.btn-external:hover {
+  border-color: var(--color-text-muted);
+  background: var(--color-bg);
+  transform: translateY(-1px);
+}
+
+/* ==============================================
+   MAPA DE INGRESSOS
+   ============================================== */
+.ticket-page-title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.ticket-page-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+}
+
+.ticket-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background var(--transition);
+  text-align: center;
+  padding: 2rem 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.ticket-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.13);
+}
+
+[data-theme="dark"] .ticket-card:hover { box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+
+.ticket-seat-code {
+  font-family: var(--font-serif);
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.ticket-status-badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.35em 0.85em;
+  border-radius: 20px;
+}
+
+.status-available { background: rgba(45,138,78,0.12);  color: #2d8a4e; border: 1px solid rgba(45,138,78,0.25); }
+.status-reserved  { background: rgba(181,122,0,0.12);  color: #b57a00; border: 1px solid rgba(181,122,0,0.25); }
+.status-sold      { background: rgba(192,57,43,0.12);  color: #c0392b; border: 1px solid rgba(192,57,43,0.25); }
+
+/* ==============================================
+   CHECKOUT
+   ============================================== */
+.checkout-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 2.5rem 2rem;
+  max-width: 440px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.checkout-title {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.checkout-seat {
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  color: var(--color-text);
+  font-weight: 700;
+  line-height: 1;
+  margin: 1rem 0;
+}
+
+.checkout-info {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.checkout-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 1.5rem 0;
+}
+
+/* ==============================================
+   PÁGINAS GENÉRICAS (Privacy, Error)
+   ============================================== */
+.page-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+/* ==============================================
+   FORM FLOATING (Bootstrap override)
+   ============================================== */
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+  color: var(--color-text-muted);
   text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+/* ==============================================
+   RESPONSIVIDADE
+   ============================================== */
+@media (max-width: 768px) {
+  .auth-card    { padding: 2rem 1.5rem; }
+  .checkout-card { padding: 2rem 1.25rem; }
+  .page-card    { padding: 1.5rem; }
+  .ticket-seat-code { font-size: 2.2rem; }
+  .ticket-card  { padding: 1.5rem 1rem; }
+}
+
+@media (max-width: 480px) {
+  html { font-size: 15px; }
+  .auth-card  { padding: 1.75rem 1.25rem; border-radius: 16px; }
+  .auth-title { font-size: 1.6rem; }
 }
