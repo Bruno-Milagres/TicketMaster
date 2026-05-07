@@ -50,17 +50,25 @@ public class TicketService
     /// Libera todos os ingressos com reservas expiradas, devolvendo-os ao estoque.
     /// Chamado periodicamente pelo <see cref="Web.Workers.TicketReaperWorker"/>.
     /// </summary>
-    public async Task ExpirarReservasVencidasAsync()
+    public async Task<List<string>> ExpirarReservasVencidasAsync()
     {
         var ingressosVencidos = await _ticketRepository.ObterReservasVencidasAsync();
+        var assentosLiberados = new List<string>(); 
 
         foreach (var ticket in ingressosVencidos)
         {
             var resultado = ticket.ExpirarReserva();
 
             if (resultado.IsSuccess)
+            {
                 await _ticketRepository.AtualizarAsync(ticket);
+
+                // Anota o código de quem foi liberado com sucesso
+                assentosLiberados.Add(ticket.AssentoCodigo);
+            }
         }
+
+        return assentosLiberados; // Devolve a lista para quem chamou
     }
 
     /// <summary>

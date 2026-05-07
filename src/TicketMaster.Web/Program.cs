@@ -1,13 +1,19 @@
 //==============================================
 // IMPORTS
 //==============================================
-using Microsoft.EntityFrameworkCore;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Serilog;
 using TicketMaster.Application.Interfaces;
 using TicketMaster.Application.Services;
 using TicketMaster.Domain.Entities;
 using TicketMaster.Infrastructure.Data;
 using TicketMaster.Infrastructure.Repositories;
+using TicketMaster.Web.Consumers;
+using TicketMaster.Web.Hubs;
 using TicketMaster.Web.Workers;
 
 //==============================================
@@ -16,9 +22,32 @@ using TicketMaster.Web.Workers;
 var builder = WebApplication.CreateBuilder(args);
 
 //==============================================
+// SERILOG + OPENTELEMETRY
+//==============================================
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracerProviderBuilder =>
+    {
+        tracerProviderBuilder
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("TicketMaster.Web"))
+            .AddAspNetCoreInstrumentation() 
+            .AddConsoleExporter();          
+    });
+
+//==============================================
 // SERVIÇOS MVC
 //==============================================
 builder.Services.AddControllersWithViews();
+
+//==============================================
+// SIGNALR
+//==============================================
+builder.Services.AddSignalR();
 
 //==============================================
 // IDENTITY
@@ -31,6 +60,27 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 //==============================================
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ==============================================
+// MENSAGERIA (RABBITMQ + MASSTRANSIT)
+// ==============================================
+builder.Services.AddMassTransit(x =>
+{
+    // Registra o nosso robo consumidor
+    x.AddConsumer<PagamentoCommandConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        // Cria as filas no RabbitMQ automaticamente baseada nos nomes dos Consumers
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 //==============================================
 // INJEÇÃO DE DEPENDÊNCIA
@@ -71,6 +121,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+app.MapHub<TicketHub>("/ticketHub");
 //==============================================
 // SEED DO BANCO DE DADOS
 //==============================================

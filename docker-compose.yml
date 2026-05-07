@@ -1,0 +1,16 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ticketmaster-rabbit
+    ports:
+      - "5672:5672"   # Porta de comunicação com minha API
+      - "15672:15672" # Porta do painel visual (Management)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+volumes:
+  rabbitmq_data:
+    name: ticketmaster_rabbit_data

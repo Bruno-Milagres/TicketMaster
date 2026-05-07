@@ -1,8 +1,10 @@
 @using TicketMaster.Domain.Entities
+@using System.Security.Claims
 @model IEnumerable<Ticket>
 
 @{
     ViewData["Title"] = "Mapa de Assentos";
+    var usuarioLogadoId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
 <div class="d-flex align-items-baseline justify-content-between mb-1">
@@ -31,7 +33,7 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
     @foreach (var ticket in Model)
     {
-        <div class="col">
+        <div class="col" id="assento-@ticket.AssentoCodigo">
             <div class="ticket-card">
                 <div class="ticket-seat-code">@ticket.AssentoCodigo</div>
 
@@ -49,12 +51,24 @@
                 }
                 else if (ticket.Status == TicketStatus.Reservado)
                 {
-                    <span class="ticket-status-badge status-reserved">
-                        <i class="fa-solid fa-clock me-1"></i>Reservado
-                    </span>
-                    <button class="btn btn-outline-secondary w-100 mt-2" disabled>
-                        <i class="fa-solid fa-ban me-1"></i>Indisponível
-                    </button>
+                    if (ticket.UsuarioId?.ToString() == usuarioLogadoId)
+                    {
+                        <span class="ticket-status-badge status-reserved bg-warning text-dark">
+                            <i class="fa-solid fa-clock me-1"></i>Sua Reserva
+                        </span>
+                        <a href="/Ticket/Checkout?codigo=@ticket.AssentoCodigo" class="btn btn-warning w-100 mt-2">
+                            <i class="fa-solid fa-credit-card me-1"></i>Pagar Agora
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="ticket-status-badge status-reserved">
+                            <i class="fa-solid fa-clock me-1"></i>Reservado
+                        </span>
+                        <button class="btn btn-outline-secondary w-100 mt-2" disabled>
+                            <i class="fa-solid fa-ban me-1"></i>Indisponível
+                        </button>
+                    }
                 }
                 else
                 {
@@ -69,3 +83,37 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+    <script>
+        // 1. Trava anti-concorrência
+        let enviandoFormulario = false;
+        document.addEventListener('submit', function () {
+        enviandoFormulario = true;
+        });
+
+        // 2. Conecta no Hub do SignalR
+        const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/ticketHub")
+        .build();
+
+        // 3. Ouve a mensagem (Sem duplicidade!)
+        connection.on("AtualizarAssento", function (assentoCodigo, status) {
+        const assentoElement = document.getElementById("assento-" + assentoCodigo);
+            
+        // Só faz o reload se existir o assento na tela e o usuário não estiver enviando um formulário
+        if (assentoElement && !enviandoFormulario) {
+        window.location.reload();
+        }
+        });
+
+        // 4. Inicia a conexão
+        connection.start().then(function () {
+        console.log("Conectado ao SignalR!");
+        }).catch(function (err) {
+        console.error(err.toString());
+        });
+    </script>
+}
