@@ -1,50 +1,100 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TicketMaster</title>
+
     <script type="importmap"></script>
+
+    @* Fontes *@
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+
+    @* Font Awesome  *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/TicketMaster.Web.styles.css" asp-append-version="true" />
+
+    @* Aplica tema antes do render para evitar flash *@
+    <script>
+        (function () {
+            var s = localStorage.getItem('tm-theme');
+            var d = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', s || d);
+        })();
+    </script>
 </head>
 <body>
+
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Ticket" asp-action="Index">TicketMaster</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+        <nav class="tm-navbar navbar navbar-expand-md">
+            <div class="container">
+
+                <a class="navbar-brand" asp-area="" asp-controller="Ticket" asp-action="Index">
+                    <i class="fa-solid fa-ticket"></i>
+                    TicketMaster
+                </a>
+
+                <button class="navbar-toggler" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#navMain"
+                        aria-controls="navMain" aria-expanded="false" aria-label="Abrir menu">
+                    <i class="fa-solid fa-bars" style="color: var(--color-text);"></i>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse" id="navMain">
+                    <ul class="navbar-nav me-auto mb-2 mb-md-0">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Ticket" asp-action="Index">Ingressos</a>
+                            <a class="nav-link" asp-area="" asp-controller="Ticket" asp-action="Index">
+                                <i class="fa-regular fa-map me-1"></i>Ingressos
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacidade</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">
+                                <i class="fa-regular fa-file-lines me-1"></i>Privacidade
+                            </a>
                         </li>
                     </ul>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <partial name="_LoginPartial" />
+                        <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema" aria-label="Alternar tema claro/escuro">
+                            <span class="icon-light"><i class="fa-solid fa-moon"></i></span>
+                            <span class="icon-dark"><i class="fa-solid fa-sun"></i></span>
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <main role="main" class="py-4">
         <div class="container">
-            &copy; 2026 - TicketMaster - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidade</a>
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="tm-footer">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>
+                <i class="fa-solid fa-ticket me-1"></i>
+                &copy; @DateTime.Now.Year TicketMaster
+            </span>
+            <span>
+                <a asp-area="" asp-controller="Home" asp-action="Privacy">
+                    <i class="fa-regular fa-file-lines me-1"></i>Privacidade
+                </a>
+            </span>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

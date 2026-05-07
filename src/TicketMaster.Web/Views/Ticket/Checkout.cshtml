@@ -3,31 +3,37 @@
     var assentoCodigo = Context.Request.Query["codigo"];
 }
 
-<div class="container mt-5 text-center">
-    <h2 class="mb-4">💳 Finalizar Compra</h2>
+<div class="checkout-card">
+
+    <h1 class="checkout-title">
+        <i class="fa-solid fa-credit-card me-2"></i>Finalizar Compra
+    </h1>
 
     @if (TempData["Sucesso"] != null)
     {
-        <div class="alert alert-success fs-5 shadow-sm">
-            @TempData["Sucesso"]
+        <div class="alert alert-success mt-3">
+            <i class="fa-solid fa-circle-check me-2"></i>@TempData["Sucesso"]
         </div>
     }
 
-    <div class="card mx-auto shadow" style="max-width: 400px;">
-        <div class="card-body">
-            <h3>Assento: <span class="text-primary fw-bold">@assentoCodigo</span></h3>
-            <hr />
-            <p class="text-muted">O ingresso está reservado. Você tem 15 minutos para pagar antes que a reserva expire e ele volte a ficar disponível.</p>
+    <div class="checkout-seat">@assentoCodigo</div>
 
-            <form asp-controller="Ticket" asp-action="Pagar" method="post" class="mb-3">
-                <input type="hidden" name="assentoCodigo" value="@assentoCodigo" />
-    
-                <button type="submit" class="btn btn-success w-100 fs-5">
-                    Confirmar Pagamento
-                </button>
-            </form>
+    <div class="checkout-divider"></div>
 
-            <a asp-controller="Ticket" asp-action="Index" class="btn btn-outline-secondary w-100">Voltar ao Mapa de Assentos</a>
-        </div>
-    </div>
+    <p class="checkout-info">
+        <i class="fa-regular fa-clock me-1"></i>
+        O ingresso está reservado. Você tem <strong>15 minutos</strong> para concluir o pagamento antes que a reserva expire.
+    </p>
+
+    <form asp-controller="Ticket" asp-action="Pagar" method="post" class="mb-3">
+        <input type="hidden" name="assentoCodigo" value="@assentoCodigo" />
+        <button type="submit" class="btn btn-success w-100">
+            <i class="fa-solid fa-circle-check me-2"></i>Confirmar Pagamento
+        </button>
+    </form>
+
+    <a asp-controller="Ticket" asp-action="Index" class="btn btn-outline-secondary w-100">
+        <i class="fa-solid fa-arrow-left me-2"></i>Voltar ao Mapa de Assentos
+    </a>
+
 </div>
