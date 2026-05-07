@@ -12,19 +12,20 @@ public enum TicketStatus
 public sealed class Ticket
 {
     public Guid Id { get; private set; }
+    public Guid EventId { get; private set; } 
     public string AssentoCodigo { get; private set; }
     public TicketStatus Status { get; private set; }
     public Guid? UsuarioId { get; private set; }
     public DateTime? DataExpiraReserva { get; private set; }
+    public Guid Versao { get; private set; }
 
-    /// <summary>Token de versão usado para controle de concorrência otimista (EF Core).</summary>
-    public Guid Versao { get; private set; } = Guid.NewGuid();
-
-    public Ticket(string assentoCodigo)
+    public Ticket(Guid eventId, string assentoCodigo)
     {
         Id = Guid.NewGuid();
+        EventId = eventId;
         AssentoCodigo = assentoCodigo;
         Status = TicketStatus.Disponivel;
+        Versao = Guid.NewGuid();
     }
 
     public Result Reservar(Guid usuarioId)

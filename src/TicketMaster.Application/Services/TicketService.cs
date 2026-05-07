@@ -23,9 +23,9 @@ public class TicketService
     /// Reserva um assento para o usuário informado.
     /// Retorna falha se o assento não existir, já estiver ocupado ou houver conflito de concorrência.
     /// </summary>
-    public async Task<Result> ReservarAssentoAsync(string assentoCodigo, Guid usuarioId)
+    public async Task<Result> ReservarAssentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
     {
-        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo);
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
 
         if (ticket == null)
             return Result.Failure("Assento não encontrado no sistema.");
@@ -63,7 +63,6 @@ public class TicketService
             {
                 await _ticketRepository.AtualizarAsync(ticket);
 
-                // Anota o código de quem foi liberado com sucesso
                 assentosLiberados.Add(ticket.AssentoCodigo);
             }
         }
@@ -74,9 +73,9 @@ public class TicketService
     /// <summary>
     /// Confirma o pagamento de um ingresso reservado, associando-o ao usuário e marcando-o como vendido.
     /// </summary>
-    public async Task<Result> ConfirmarPagamentoAsync(string assentoCodigo, Guid usuarioId)
+    public async Task<Result> ConfirmarPagamentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
     {
-        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo);
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
         if (ticket == null)
             return Result.Failure("Assento não encontrado no sistema.");
         var resultado = ticket.ConfirmarPagamento(usuarioId);

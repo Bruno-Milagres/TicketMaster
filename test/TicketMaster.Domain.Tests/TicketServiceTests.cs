@@ -21,11 +21,11 @@ public class TicketServiceTests
     public async Task ReservarAssento_QuandoTudoOk_DeveChamarAtualizarNoRepositorio()
     {
         // ARRANGE (Configura o "fingimento")
-        var ticket = new Ticket("A1");
-        _repositoryMock.Setup(r => r.ObterPorAssentoAsync("A1")).ReturnsAsync(ticket);
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
+        _repositoryMock.Setup(r => r.ObterPorAssentoAsync("A1", It.IsAny<Guid>())).ReturnsAsync(ticket);
 
         // ACT (Executa o serviço real)
-        var resultado = await _service.ReservarAssentoAsync("A1", _usuarioId);
+        var resultado = await _service.ReservarAssentoAsync("A1", _usuarioId, Guid.NewGuid());
 
         // ASSERT (Verifica se o serviço se comportou bem)
         Assert.True(resultado.IsSuccess);
@@ -36,10 +36,10 @@ public class TicketServiceTests
     public async Task ReservarAssento_QuandoAssentoNaoExiste_DeveRetornarFalha()
     {
         // ARRANGE: O repositório retorna null
-        _repositoryMock.Setup(r => r.ObterPorAssentoAsync("Z9")).ReturnsAsync((Ticket)null!);
+        _repositoryMock.Setup(r => r.ObterPorAssentoAsync("Z9", It.IsAny<Guid>())).ReturnsAsync((Ticket)null!);
 
         // ACT
-        var resultado = await _service.ReservarAssentoAsync("Z9", _usuarioId);
+        var resultado = await _service.ReservarAssentoAsync("Z9", _usuarioId, Guid.NewGuid());
 
         // ASSERT
         Assert.False(resultado.IsSuccess);

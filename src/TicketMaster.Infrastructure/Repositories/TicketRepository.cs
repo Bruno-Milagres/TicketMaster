@@ -15,10 +15,17 @@ public class TicketRepository : ITicketRepository
         _context = context;
     }
 
-    public async Task<Ticket?> ObterPorAssentoAsync(string assentoCodigo)
+    public async Task<Ticket?> ObterPorAssentoAsync(string assentoCodigo, Guid eventId)
     {
         return await _context.Tickets
-            .FirstOrDefaultAsync(t => t.AssentoCodigo == assentoCodigo);
+            .FirstOrDefaultAsync(t => t.AssentoCodigo == assentoCodigo && t.EventId == eventId);
+    }
+
+    public async Task<IEnumerable<Ticket>> ObterPorEventoAsync(Guid eventId)
+    {
+        return await _context.Tickets
+            .Where(t => t.EventId == eventId)
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<Ticket>> ObterTodosAsync()

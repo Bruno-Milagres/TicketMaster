@@ -42,12 +42,12 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Reservar(string assentoCodigo)
+    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId)
     {
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuarioLogadoId = Guid.Parse(userIdString!);
 
-        var resultado = await _ticketService.ReservarAssentoAsync(assentoCodigo, usuarioLogadoId);
+        var resultado = await _ticketService.ReservarAssentoAsync(assentoCodigo, usuarioLogadoId, eventId);
 
         if (!resultado.IsSuccess)
         {
@@ -67,13 +67,13 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Pagar(string assentoCodigo)
+    public async Task<IActionResult> Pagar(string assentoCodigo, Guid eventId)
     {
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuarioLogadoId = Guid.Parse(userIdString!);
 
         //R1. Mensagem
-        var comando = new PagamentoCommand(assentoCodigo, usuarioLogadoId);
+        var comando = new PagamentoCommand(assentoCodigo, usuarioLogadoId, eventId);
 
         //R2. Joga na Fila do RabbitMQ
         await _publishEndpoint.Publish(comando);

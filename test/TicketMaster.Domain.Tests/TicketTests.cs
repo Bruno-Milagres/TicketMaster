@@ -20,7 +20,7 @@ public class TicketTests
     [Fact]
     public void Construtor_DeveInicializarComValoresCorretos()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
 
         Assert.NotEqual(Guid.Empty, ticket.Id);
         Assert.Equal("A1", ticket.AssentoCodigo);
@@ -37,7 +37,7 @@ public class TicketTests
     [Fact]
     public void Reservar_QuandoDisponivel_DeveRetornarSucesso()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
 
         var resultado = ticket.Reservar(UsuarioA);
 
@@ -50,7 +50,7 @@ public class TicketTests
     [Fact]
     public void Reservar_QuandoJaReservado_DeveRetornarFalha()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
 
         var resultado = ticket.Reservar(UsuarioB);
@@ -62,7 +62,7 @@ public class TicketTests
     [Fact]
     public void Reservar_QuandoVendido_DeveRetornarFalha()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
         ticket.ConfirmarPagamento(UsuarioA);
 
@@ -78,7 +78,7 @@ public class TicketTests
     [Fact]
     public void ConfirmarPagamento_QuandoReservadoPeloMesmoUsuario_DeveRetornarSucesso()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
 
         var resultado = ticket.ConfirmarPagamento(UsuarioA);
@@ -91,7 +91,7 @@ public class TicketTests
     [Fact]
     public void ConfirmarPagamento_QuandoUsuarioDiferente_DeveRetornarFalha()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
 
         var resultado = ticket.ConfirmarPagamento(UsuarioB);
@@ -103,7 +103,7 @@ public class TicketTests
     [Fact]
     public void ConfirmarPagamento_QuandoDisponivel_DeveRetornarFalha()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
 
         var resultado = ticket.ConfirmarPagamento(UsuarioA);
 
@@ -113,7 +113,7 @@ public class TicketTests
     [Fact]
     public void ConfirmarPagamento_QuandoJaVendido_DeveRetornarFalha()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
         ticket.ConfirmarPagamento(UsuarioA);
 
@@ -130,7 +130,7 @@ public class TicketTests
     [Fact]
     public void ExpirarReserva_QuandoReservaVencida_DeveRetornarSucessoELiberarAssento()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
 
         // Força expiração: o método valida DataExpiraReserva <= UtcNow,
@@ -150,7 +150,7 @@ public class TicketTests
     [Fact]
     public void ExpirarReserva_QuandoReservaAindaValida_DeveRetornarFalha()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
 
         var resultado = ticket.ExpirarReserva();
@@ -162,7 +162,7 @@ public class TicketTests
     [Fact]
     public void ExpirarReserva_QuandoDisponivel_DeveRetornarFalha()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
 
         var resultado = ticket.ExpirarReserva();
 
@@ -172,7 +172,7 @@ public class TicketTests
     [Fact]
     public void ExpirarReserva_QuandoVendido_DeveRetornarFalha()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
         ticket.ConfirmarPagamento(UsuarioA);
 
@@ -185,7 +185,7 @@ public class TicketTests
     [Fact]
     public void ExpirarReserva_QuandoVencida_DeveLiberarAssentoParaNovaReserva()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
 
         typeof(Ticket)
@@ -209,7 +209,7 @@ public class TicketTests
     [Fact]
     public void Reservar_DeveAtualizarVersao()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         var versaoAnterior = ticket.Versao;
 
         ticket.Reservar(UsuarioA);
@@ -220,7 +220,7 @@ public class TicketTests
     [Fact]
     public void ConfirmarPagamento_DeveAtualizarVersao()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
         var versaoAnterior = ticket.Versao;
 
@@ -232,7 +232,7 @@ public class TicketTests
     [Fact]
     public void ExpirarReserva_DeveAtualizarVersao()
     {
-        var ticket = new Ticket("A1");
+        var ticket = new Ticket(Guid.NewGuid(), "A1");
         ticket.Reservar(UsuarioA);
 
         typeof(Ticket)

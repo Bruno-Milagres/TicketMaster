@@ -25,15 +25,21 @@ public class PagamentoCommandConsumer : IConsumer<PagamentoCommand>
     public async Task Consume(ConsumeContext<PagamentoCommand> context)
     {
         var comando = context.Message;
-        _logger.LogInformation("Lendo da Fila: Processando pagamento do assento {AssentoCodigo}", comando.AssentoCodigo);
+        _logger.LogInformation("Lendo da Fila: Processando pagamento do assento {AssentoCodigo} do evento {EventId}",
+            comando.AssentoCodigo, comando.EventId);
 
-        // Faz o trabalho pesado no banco de dados
-        var resultado = await _ticketService.ConfirmarPagamentoAsync(comando.AssentoCodigo, comando.UsuarioId);
+        // Agora passamos o terceiro parâmetro!
+        var resultado = await _ticketService.ConfirmarPagamentoAsync(
+            comando.AssentoCodigo,
+            comando.UsuarioId,
+            comando.EventId);
 
         if (resultado.IsSuccess)
         {
-            // Pagamento aprovado! Grita no megafone para atualizar o mapa de TODO MUNDO
-            await _hubContext.Clients.All.SendAsync("AtualizarAssento", comando.AssentoCodigo, "Vendido");
+            // MUDANÇA SENIOR: Em vez de All (todos), enviamos apenas para o Grupo do Evento!
+            await _hubContext.Clients.Group(comando.EventId.ToString())
+                .SendAsync("AtualizarAssento", comando.AssentoCodigo, "Vendido");
+
             _logger.LogInformation("Sucesso! Assento {AssentoCodigo} vendido.", comando.AssentoCodigo);
         }
         else
