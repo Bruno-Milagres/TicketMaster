@@ -19,7 +19,13 @@
             <hr />
             <p class="text-muted">O ingresso está reservado. Você tem 15 minutos para pagar antes que a reserva expire e ele volte a ficar disponível.</p>
 
-            <button class="btn btn-success w-100 mb-3 fs-5">Simular Pagamento (Em breve)</button>
+            <form asp-controller="Ticket" asp-action="Pagar" method="post" class="mb-3">
+                <input type="hidden" name="assentoCodigo" value="@assentoCodigo" />
+    
+                <button type="submit" class="btn btn-success w-100 fs-5">
+                    Confirmar Pagamento
+                </button>
+            </form>
 
             <a asp-controller="Ticket" asp-action="Index" class="btn btn-outline-secondary w-100">Voltar ao Mapa de Assentos</a>
         </div>

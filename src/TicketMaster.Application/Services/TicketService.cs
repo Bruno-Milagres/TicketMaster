@@ -1,4 +1,5 @@
 using TicketMaster.Application.Interfaces;
+using TicketMaster.Domain.Common;
 using TicketMaster.Domain.Entities;
 using TicketMaster.Domain.Exceptions;
 
@@ -59,6 +60,28 @@ public class TicketService
 
             if (resultado.IsSuccess)
                 await _ticketRepository.AtualizarAsync(ticket);
+        }
+    }
+
+    /// <summary>
+    /// Confirma o pagamento de um ingresso reservado, associando-o ao usuário e marcando-o como vendido.
+    /// </summary>
+    public async Task<Result> ConfirmarPagamentoAsync(string assentoCodigo, Guid usuarioId)
+    {
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo);
+        if (ticket == null)
+            return Result.Failure("Assento não encontrado no sistema.");
+        var resultado = ticket.ConfirmarPagamento(usuarioId);
+        if (!resultado.IsSuccess)
+            return resultado;
+        try
+        {
+            await _ticketRepository.AtualizarAsync(ticket);
+            return Result.Success();
+        }
+        catch (ConcurrencyException)
+        {
+            return Result.Failure("Poxa! Parece que houve um problema ao confirmar seu pagamento. Por favor, tente novamente.");
         }
     }
 }

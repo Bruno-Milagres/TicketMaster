@@ -1,4 +1,4 @@
-namespace TicketMaster.Domain.Entities;
+namespace TicketMaster.Domain.Common;
 
 /// <summary>
 /// Encapsula o resultado de uma operação de domínio, indicando sucesso ou falha com mensagem.

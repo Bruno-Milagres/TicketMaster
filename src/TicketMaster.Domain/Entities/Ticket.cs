@@ -1,3 +1,5 @@
+using TicketMaster.Domain.Common;
+
 namespace TicketMaster.Domain.Entities;
 
 public enum TicketStatus

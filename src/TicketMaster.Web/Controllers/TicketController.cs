@@ -37,6 +37,24 @@ public class TicketController : Controller
         return RedirectToAction("Checkout", new { codigo = assentoCodigo });
     }
 
+    [HttpPost]
+    public async Task<IActionResult> Pagar(string assentoCodigo)
+    {
+        // TODO: substituir pelo ID do usuário autenticado via ASP.NET Identity
+        var usuarioLogadoId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        var resultado = await _ticketService.ConfirmarPagamentoAsync(assentoCodigo, usuarioLogadoId);
+
+        if (!resultado.IsSuccess)
+        {
+            TempData["Erro"] = resultado.ErrorMessage;
+            return RedirectToAction("Index");
+        }
+
+        TempData["Sucesso"] = $"Pagamento confirmado para o assento {assentoCodigo}!";
+        return RedirectToAction("Index");
+    }
+
     [HttpGet]
     public IActionResult Checkout(string codigo)
     {
