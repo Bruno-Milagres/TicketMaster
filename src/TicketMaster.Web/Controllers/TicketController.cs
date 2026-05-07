@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TicketMaster.Application.Services;
 
 namespace TicketMaster.Web.Controllers;
@@ -19,11 +21,28 @@ public class TicketController : Controller
         return View(tickets);
     }
 
+    //==================================================================
+    // O PARA-QUEDAS DO LOGIN
+    // Se o usuario for redirecionado para ca via GET apas o login
+    //==================================================================
+    [HttpGet]
+    public IActionResult Reservar()
+    {
+        return RedirectToAction("Index");
+    }
+
+    [HttpGet]
+    public IActionResult Pagar()
+    {
+        return RedirectToAction("Index");
+    }
+
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Reservar(string assentoCodigo)
     {
-        // TODO: substituir pelo ID do usuário autenticado via ASP.NET Identity
-        var usuarioLogadoId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var usuarioLogadoId = Guid.Parse(userIdString!);
 
         var resultado = await _ticketService.ReservarAssentoAsync(assentoCodigo, usuarioLogadoId);
 
@@ -37,11 +56,12 @@ public class TicketController : Controller
         return RedirectToAction("Checkout", new { codigo = assentoCodigo });
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Pagar(string assentoCodigo)
     {
-        // TODO: substituir pelo ID do usuário autenticado via ASP.NET Identity
-        var usuarioLogadoId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var usuarioLogadoId = Guid.Parse(userIdString!);
 
         var resultado = await _ticketService.ConfirmarPagamentoAsync(assentoCodigo, usuarioLogadoId);
 
