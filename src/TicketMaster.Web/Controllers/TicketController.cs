@@ -6,7 +6,6 @@ using System.Security.Claims;
 using TicketMaster.Application.Messages;
 using TicketMaster.Application.Services;
 using TicketMaster.Web.Hubs;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace TicketMaster.Web.Controllers;
 
@@ -30,10 +29,10 @@ public class TicketController : Controller
         return View(tickets);
     }
 
-    //==================================================================
-    // O PARA-QUEDAS DO LOGIN
-    // Se o usuario for redirecionado para ca via GET apas o login
-    //==================================================================
+    /// <summary>
+    /// Redireciona para a listagem de ingressos caso o usuário chegue via GET
+    /// após ser redirecionado pelo fluxo de login.
+    /// </summary>
     [HttpGet]
     public IActionResult Reservar()
     {
@@ -72,13 +71,10 @@ public class TicketController : Controller
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuarioLogadoId = Guid.Parse(userIdString!);
 
-        //R1. Mensagem
         var comando = new PagamentoCommand(assentoCodigo, usuarioLogadoId, eventId);
 
-        //R2. Joga na Fila do RabbitMQ
         await _publishEndpoint.Publish(comando);
 
-        // R3. Devolve a tela pro usuario na hora
         TempData["Sucesso"] = $"Seu pedido de pagamento para o assento {assentoCodigo} foi para a fila. Aguarde a confirmação no mapa!";
 
         return RedirectToAction("Index");

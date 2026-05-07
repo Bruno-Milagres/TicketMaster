@@ -1,21 +1,13 @@
-//==============================================
-// IMPORTS
-//==============================================
 using TicketMaster.Domain.Entities;
 
 namespace TicketMaster.Domain.Tests;
 
 public class TicketTests
 {
-    //==============================================
-    // DADOS DE TESTE
-    //==============================================
     private static readonly Guid UsuarioA = Guid.NewGuid();
     private static readonly Guid UsuarioB = Guid.NewGuid();
 
-    //==============================================
-    // CONSTRUCTOR / ESTADO INICIAL
-    //==============================================
+    #region Construtor / Estado inicial
 
     [Fact]
     public void Construtor_DeveInicializarComValoresCorretos()
@@ -30,9 +22,9 @@ public class TicketTests
         Assert.NotEqual(Guid.Empty, ticket.Versao);
     }
 
-    //==============================================
-    // RESERVAR
-    //==============================================
+    #endregion
+
+    #region Reservar
 
     [Fact]
     public void Reservar_QuandoDisponivel_DeveRetornarSucesso()
@@ -71,9 +63,9 @@ public class TicketTests
         Assert.False(resultado.IsSuccess);
     }
 
-    //==============================================
-    // CONFIRMAR PAGAMENTO
-    //==============================================
+    #endregion
+
+    #region ConfirmarPagamento
 
     [Fact]
     public void ConfirmarPagamento_QuandoReservadoPeloMesmoUsuario_DeveRetornarSucesso()
@@ -123,9 +115,9 @@ public class TicketTests
         Assert.NotEmpty(resultado.ErrorMessage);
     }
 
-    //==============================================
-    // EXPIRAR RESERVA
-    //==============================================
+    #endregion
+
+    #region ExpirarReserva
 
     [Fact]
     public void ExpirarReserva_QuandoReservaVencida_DeveRetornarSucessoELiberarAssento()
@@ -202,9 +194,9 @@ public class TicketTests
         Assert.Equal(UsuarioB, ticket.UsuarioId);
     }
 
-    //==============================================
-    // VERSÃO (CONCORRÊNCIA OTIMISTA)
-    //==============================================
+    #endregion
+
+    #region Versão (Concorrência Otimista)
 
     [Fact]
     public void Reservar_DeveAtualizarVersao()
@@ -245,4 +237,6 @@ public class TicketTests
 
         Assert.NotEqual(versaoAnterior, ticket.Versao);
     }
+
+    #endregion
 }

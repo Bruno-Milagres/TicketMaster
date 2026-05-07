@@ -53,7 +53,7 @@ public class TicketService
     public async Task<List<string>> ExpirarReservasVencidasAsync()
     {
         var ingressosVencidos = await _ticketRepository.ObterReservasVencidasAsync();
-        var assentosLiberados = new List<string>(); 
+        var assentosLiberados = new List<string>();
 
         foreach (var ticket in ingressosVencidos)
         {
@@ -67,7 +67,7 @@ public class TicketService
             }
         }
 
-        return assentosLiberados; // Devolve a lista para quem chamou
+        return assentosLiberados;
     }
 
     /// <summary>

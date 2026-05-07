@@ -6,10 +6,14 @@ public class Room
     public string Name { get; private set; } = null!;
     public RoomLayout Layout { get; private set; } = null!;
 
-    // R1. Construtor privado para o EF Core (ele consegue preencher as propriedades via Reflection)
+    /// <summary>
+    /// Construtor privado exigido pelo EF Core para materialização via reflexão.
+    /// </summary>
     private Room() { }
 
-    // R2. Seu construtor público que o resto do sistema vai usar
+    /// <summary>
+    /// Cria uma nova sala com o nome e layout informados.
+    /// </summary>
     public Room(string name, RoomLayout layout)
     {
         Id = Guid.NewGuid();
@@ -17,16 +21,24 @@ public class Room
         Layout = layout;
     }
 
-    // Representa a coordenada de uma única cadeira no mapa
+    /// <summary>
+    /// Representa a coordenada de uma única cadeira no mapa da sala.
+    /// </summary>
     public class SeatCoordinate
     {
-        public string SeatCode { get; set; } = string.Empty; // Ex: "A1"
-        public int CoordX { get; set; } // Coluna no CSS Grid
-        public int CoordY { get; set; } // Linha no CSS Grid
-        public string Type { get; set; } = "Standard"; // Ex: Standard, VIP, Cadeirante
+        /// <summary>Código único do assento, por exemplo "A1".</summary>
+        public string SeatCode { get; set; } = string.Empty;
+        /// <summary>Coluna no CSS Grid.</summary>
+        public int CoordX { get; set; }
+        /// <summary>Linha no CSS Grid.</summary>
+        public int CoordY { get; set; }
+        /// <summary>Tipo do assento: Standard, VIP ou Cadeirante.</summary>
+        public string Type { get; set; } = "Standard";
     }
 
-    // Representa o mapa completo da sala
+    /// <summary>
+    /// Representa o mapa completo da sala, com dimensões e posições de todos os assentos.
+    /// </summary>
     public class RoomLayout
     {
         public int MaxColumns { get; set; }
