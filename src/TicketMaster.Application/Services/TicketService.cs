@@ -14,9 +14,9 @@ public class TicketService
         _ticketRepository = ticketRepository;
     }
 
-    public async Task<IEnumerable<Ticket>> ObterTodosAsync()
+    public async Task<IEnumerable<Ticket>> ObterPorEventoAsync(Guid eventId)
     {
-        return await _ticketRepository.ObterTodosAsync();
+        return await _ticketRepository.ObterPorEventoAsync(eventId);
     }
 
     /// <summary>
@@ -90,5 +90,20 @@ public class TicketService
         {
             return Result.Failure("Poxa! Parece que houve um problema ao confirmar seu pagamento. Por favor, tente novamente.");
         }
+    }
+
+    /// <summary>
+    /// Cancela a reserva de um ingresso pelo usuário.
+    /// </summary>
+    public async Task<Result> CancelarReservaAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
+    {
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
+        if (ticket == null) return Result.Failure("Assento não encontrado.");
+
+        var resultado = ticket.CancelarReservaPeloUsuario(usuarioId);
+        if (!resultado.IsSuccess) return resultado;
+
+        await _ticketRepository.AtualizarAsync(ticket);
+        return Result.Success();
     }
 }

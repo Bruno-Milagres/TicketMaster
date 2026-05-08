@@ -1,24 +1,24 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using TicketMaster.Application.Services;
 using TicketMaster.Web.Models;
 
 namespace TicketMaster.Web.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
-    public IActionResult Index()
+    private readonly EventService _eventService;
+
+    public HomeController(EventService eventService)
     {
-        return RedirectToAction("Index", "Ticket");
+        _eventService = eventService;
     }
 
-    public IActionResult Privacy()
+    public async Task<IActionResult> Index()
     {
-        return View();
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        var eventos = await _eventService.ListarEventosAtivosAsync();
+        return View(eventos);
     }
 }

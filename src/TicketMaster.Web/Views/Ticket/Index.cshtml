@@ -1,119 +1,200 @@
-@using TicketMaster.Domain.Entities
-@using System.Security.Claims
-@model IEnumerable<Ticket>
+@model IEnumerable<TicketMaster.Domain.Entities.Ticket>
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "Mapa de Assentos";
-    var usuarioLogadoId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
-<div class="d-flex align-items-baseline justify-content-between mb-1">
-    <h1 class="ticket-page-title">
-        <i class="fa-solid fa-map-location-dot me-2"></i>Mapa de Assentos
-    </h1>
+<div class="seat-map-page">
+    <div class="seat-map-header text-center mb-4">
+        <h1 class="ticket-page-title mb-2">
+            <i class="fa-solid fa-ticket me-2"></i>Ingressos para:
+            <span class="seat-map-event-name">@ViewBag.EventName</span>
+        </h1>
+        <p class="ticket-page-subtitle mb-3">Selecione um assento disponível para continuar com a reserva.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i>Voltar para o Hub
+        </a>
+    </div>
+
+    <div class="seat-map-legend mb-3" aria-label="Legenda de status dos assentos">
+        <span class="seat-legend-item">
+            <span class="seat-legend-dot seat-disponivel"></span>Disponível
+        </span>
+        <span class="seat-legend-item">
+            <span class="seat-legend-dot seat-reservado"></span>Reservado
+        </span>
+        <span class="seat-legend-item">
+            <span class="seat-legend-dot seat-vendido"></span>Vendido
+        </span>
+        <span class="seat-legend-item">
+            <span class="seat-legend-dot seat-minha-reserva"></span>Minha Reserva
+        </span>
+    </div>
+
+    <div class="seat-map-wrapper">
+        <div id="seat-map" class="seat-map-grid" aria-live="polite"></div>
+    </div>
 </div>
-<p class="ticket-page-subtitle">Escolha seu assento e garanta seu ingresso</p>
 
-@if (TempData["Erro"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-circle-exclamation me-2"></i><strong>Ops!</strong> @TempData["Erro"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-    </div>
-}
-
-@if (TempData["Sucesso"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-circle-check me-2"></i><strong>Show!</strong> @TempData["Sucesso"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-    </div>
-}
-
-<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-    @foreach (var ticket in Model)
-    {
-        <div class="col" id="assento-@ticket.AssentoCodigo">
-            <div class="ticket-card">
-                <div class="ticket-seat-code">@ticket.AssentoCodigo</div>
-
-                @if (ticket.Status == TicketStatus.Disponivel)
-                {
-                    <span class="ticket-status-badge status-available">
-                        <i class="fa-solid fa-circle-check me-1"></i>Livre
-                    </span>
-                    <form asp-controller="Ticket" asp-action="Reservar" method="post" class="w-100">
-                        <input type="hidden" name="assentoCodigo" value="@ticket.AssentoCodigo" />
-                        <button type="submit" class="btn btn-primary w-100 mt-2">
-                            <i class="fa-solid fa-lock me-1"></i>Reservar Agora
-                        </button>
-                    </form>
-                }
-                else if (ticket.Status == TicketStatus.Reservado)
-                {
-                    if (ticket.UsuarioId?.ToString() == usuarioLogadoId)
-                    {
-                        <span class="ticket-status-badge status-reserved bg-warning text-dark">
-                            <i class="fa-solid fa-clock me-1"></i>Sua Reserva
-                        </span>
-                        <a href="/Ticket/Checkout?codigo=@ticket.AssentoCodigo" class="btn btn-warning w-100 mt-2">
-                            <i class="fa-solid fa-credit-card me-1"></i>Pagar Agora
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="ticket-status-badge status-reserved">
-                            <i class="fa-solid fa-clock me-1"></i>Reservado
-                        </span>
-                        <button class="btn btn-outline-secondary w-100 mt-2" disabled>
-                            <i class="fa-solid fa-ban me-1"></i>Indisponível
-                        </button>
-                    }
-                }
-                else
-                {
-                    <span class="ticket-status-badge status-sold">
-                        <i class="fa-solid fa-xmark me-1"></i>Vendido
-                    </span>
-                    <button class="btn btn-outline-secondary w-100 mt-2" disabled>
-                        <i class="fa-solid fa-ban me-1"></i>Esgotado
-                    </button>
-                }
+<!-- Modal de confirmação de cancelamento -->
+<div class="modal fade" id="modalConfirmarCancelamento" tabindex="-1" aria-labelledby="modalCancelLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCancelLabel">
+                    <i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i>Cancelar Reserva
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalCancelMsg"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Não, voltar
+                </button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarCancelamento">
+                    <i class="fa-solid fa-xmark me-1"></i>Sim, cancelar
+                </button>
             </div>
         </div>
-    }
+    </div>
 </div>
 
-@section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<input type="hidden" id="hiddenEventId" value="@ViewBag.EventId" />
+<input type="hidden" id="hiddenCurrentUserId" value="@ViewBag.CurrentUserId" />
+<script>
+    const roomLayout = @Html.Raw(JsonSerializer.Serialize(ViewBag.RoomLayout));
+    const tickets = @Html.Raw(JsonSerializer.Serialize(Model));
+</script>
 
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
-        // 1. Trava anti-concorrência
-        let enviandoFormulario = false;
-        document.addEventListener('submit', function () {
-        enviandoFormulario = true;
+        const eventId = document.getElementById("hiddenEventId")?.value;
+        const currentUserId = document.getElementById("hiddenCurrentUserId")?.value;
+        const mapContainer = document.getElementById("seat-map");
+
+        if (!eventId || !mapContainer || !roomLayout?.Seats) {
+        console.error("Dados inválidos para renderizar o mapa de assentos.");
+        } else {
+        mapContainer.style.setProperty('--max-cols', roomLayout.MaxColumns);
+        mapContainer.style.setProperty('--max-rows', roomLayout.MaxRows);
+
+        roomLayout.Seats.forEach(coord => {
+        const ticketState = tickets.find(t => t.AssentoCodigo === coord.SeatCode);
+        const status = ticketState ? ticketState.Status : 0;
+        const donoId = ticketState ? ticketState.UsuarioId : null;
+
+        const btn = document.createElement("button");
+        btn.id = `btn-${coord.SeatCode}`;
+        btn.type = "button";
+        btn.innerText = coord.SeatCode;
+        btn.classList.add("seat-btn");
+        btn.style.gridColumn = coord.CoordX;
+        btn.style.gridRow = coord.CoordY;
+
+        applySeatStatus(btn, status, donoId, coord.SeatCode);
+
+        mapContainer.appendChild(btn);
         });
 
-        // 2. Conecta no Hub do SignalR
         const connection = new signalR.HubConnectionBuilder()
         .withUrl("/ticketHub")
+        .withAutomaticReconnect()
         .build();
 
-        // 3. Ouve a mensagem (Sem duplicidade!)
-        connection.on("AtualizarAssento", function (assentoCodigo, status) {
-        const assentoElement = document.getElementById("assento-" + assentoCodigo);
-            
-        // Só faz o reload se existir o assento na tela e o usuário não estiver enviando um formulário
-        if (assentoElement && !enviandoFormulario) {
-        window.location.reload();
+        connection.on("AtualizarAssento", (codigo, novoStatus) => {
+        const btn = document.getElementById(`btn-${codigo}`);
+        if (!btn) return;
+
+        if (novoStatus === "Reservado") {
+        applySeatStatus(btn, 1, null, codigo);
+        } else if (novoStatus === "Vendido") {
+        applySeatStatus(btn, 2, null, codigo);
+        } else if (novoStatus === "Disponivel") {
+        applySeatStatus(btn, 0, null, codigo);
         }
         });
 
-        // 4. Inicia a conexão
-        connection.start().then(function () {
-        console.log("Conectado ao SignalR!");
-        }).catch(function (err) {
-        console.error(err.toString());
-        });
+        connection.start()
+        .then(() => connection.invoke("EntrarNaSalaDoEvento", eventId))
+        .catch(err => console.error(err.toString()));
+        }
+
+        function applySeatStatus(button, status, donoId, codigo) {
+        button.classList.remove("seat-disponivel", "seat-reservado", "seat-vendido", "seat-minha-reserva", "seat-pago");
+        button.onclick = null;
+        button.innerHTML = codigo;
+
+        if (status === 0) {
+        button.classList.add("seat-disponivel");
+        button.disabled = false;
+        button.onclick = () => reservarAssento(codigo);
+        return;
+        }
+
+        if (status === 1) {
+        if (currentUserId && donoId && currentUserId.toLowerCase() === donoId.toLowerCase()) {
+        button.classList.add("seat-minha-reserva");
+        button.disabled = false;
+        button.innerHTML = `
+            <span class="seat-code-label">${codigo}</span>
+            <div class="seat-inline-actions">
+                <button class="seat-action-pay" title="Ir ao Pagamento" onclick="event.stopPropagation(); irPagamento('${codigo}')">
+                    <i class="fa-solid fa-credit-card"></i>
+                </button>
+                <button class="seat-action-cancel" title="Cancelar Reserva" onclick="event.stopPropagation(); confirmarCancelamento('${codigo}')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>`;
+        button.onclick = null;
+        } else {
+        button.classList.add("seat-reservado");
+        button.disabled = true;
+        }
+        return;
+        }
+
+        if (status === 2) {
+        button.classList.add("seat-pago");
+        button.disabled = true;
+        return;
+        }
+
+        button.classList.add("seat-vendido");
+        button.disabled = true;
+        }
+
+        function irPagamento(codigo) {
+        window.location.href = `/Ticket/Checkout?codigo=${codigo}&eventId=${eventId}`;
+        }
+
+        function confirmarCancelamento(codigo) {
+        document.getElementById('modalCancelMsg').textContent =
+            `Tem certeza que deseja cancelar a reserva do assento ${codigo}? Ele ficará disponível para outras pessoas.`;
+        document.getElementById('btnConfirmarCancelamento').onclick = () => {
+            bootstrap.Modal.getInstance(document.getElementById('modalConfirmarCancelamento')).hide();
+            cancelarReservaPost(codigo);
+        };
+        new bootstrap.Modal(document.getElementById('modalConfirmarCancelamento')).show();
+        }
+
+        function reservarAssento(codigo) {
+        const form = document.createElement("form");
+        form.method = "post";
+        form.action = `/Ticket/Reservar?assentoCodigo=${codigo}&eventId=${eventId}`;
+        document.body.appendChild(form);
+        form.submit();
+        }
+
+        function cancelarReservaPost(codigo) {
+        const form = document.createElement("form");
+        form.method = "post";
+        form.action = `/Ticket/CancelarReserva?assentoCodigo=${codigo}&eventId=${eventId}`;
+        document.body.appendChild(form);
+        form.submit();
+        }
     </script>
 }

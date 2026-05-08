@@ -60,7 +60,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 // BANCO DE DADOS
 //==============================================
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ==============================================
 // MENSAGERIA (RABBITMQ + MASSTRANSIT)
@@ -86,9 +86,13 @@ builder.Services.AddMassTransit(x =>
 //==============================================
 // INJEÇÃO DE DEPENDÊNCIA
 //==============================================
+// Repositórios
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
-builder.Services.AddScoped<TicketService>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+// Serviços de domínio
 builder.Services.AddHostedService<TicketReaperWorker>();
+builder.Services.AddScoped<TicketService>();
+builder.Services.AddScoped<EventService>();
 
 //==============================================
 // BUILD
@@ -107,6 +111,17 @@ if (!app.Environment.IsDevelopment())
 //==============================================
 // MIDDLEWARES
 //==============================================
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/Identity/Account/Login") &&
+        context.User.Identity?.IsAuthenticated == true)
+    {
+        context.Response.Redirect("/");
+        return;
+    }
+    await next();
+});
+app.MapControllers();
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
@@ -142,7 +157,7 @@ using (var scope = app.Services.CreateScope())
             Seats = new List<Room.SeatCoordinate>
             {
                 new() { SeatCode = "A1", CoordX = 1, CoordY = 1 },
-                new() { SeatCode = "A3", CoordX = 3, CoordY = 1 }, // Corredor no X=2
+                new() { SeatCode = "A3", CoordX = 3, CoordY = 1 },
                 new() { SeatCode = "B1", CoordX = 1, CoordY = 2 },
                 new() { SeatCode = "B3", CoordX = 3, CoordY = 2 }
             }
