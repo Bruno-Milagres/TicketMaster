@@ -3,37 +3,55 @@
     var assentoCodigo = Context.Request.Query["codigo"];
 }
 
-<div class="checkout-card">
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+        <div class="card border-0 shadow-sm tm-hover-lift">
+            <div class="row g-0">
+                <div class="col-12 col-md-5">
+                    @* Placeholder: adicione a imagem em wwwroot/img/checkout-payment.jpg *@
+                    <img src="~/img/checkout-payment.jpg" class="img-fluid h-100 w-100 rounded-start placeholder-img checkout-image" alt="Ilustração de pagamento seguro" />
+                </div>
+                <div class="col-12 col-md-7">
+                    <div class="checkout-card h-100">
+                        <div class="d-flex justify-content-center gap-2 mb-2">
+                            <span class="badge text-bg-primary">Checkout</span>
+                            <span class="badge text-bg-secondary">Assento @assentoCodigo</span>
+                        </div>
 
-    <h1 class="checkout-title">
-        <i class="fa-solid fa-credit-card me-2"></i>Finalizar Compra
-    </h1>
+                        <h1 class="checkout-title">
+                            <i class="fa-solid fa-credit-card me-2"></i>Finalizar Compra
+                        </h1>
 
-    @if (TempData["Sucesso"] != null)
-    {
-        <div class="alert alert-success mt-3">
-            <i class="fa-solid fa-circle-check me-2"></i>@TempData["Sucesso"]
+                        @if (TempData["Sucesso"] != null)
+                        {
+                            <div class="alert alert-success mt-3">
+                                <i class="fa-solid fa-circle-check me-2"></i>@TempData["Sucesso"]
+                            </div>
+                        }
+
+                        <div class="checkout-seat">@assentoCodigo</div>
+
+                        <div class="checkout-divider"></div>
+
+                        <p class="checkout-info">
+                            <i class="fa-regular fa-clock me-1"></i>
+                            O ingresso está reservado. Você tem <strong>15 minutos</strong> para concluir o pagamento antes que a reserva expire.
+                        </p>
+
+                        <form asp-controller="Ticket" asp-action="Pagar" method="post" class="mb-3">
+                            <input type="hidden" name="assentoCodigo" value="@assentoCodigo" />
+                            <input type="hidden" name="eventId" value="@ViewBag.EventId" />
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fa-solid fa-circle-check me-2"></i>Confirmar Pagamento
+                            </button>
+                        </form>
+
+                        <a asp-controller="Ticket" asp-action="Index" asp-route-eventId="@ViewBag.EventId" class="btn btn-outline-secondary w-100">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Voltar ao Mapa de Assentos
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    }
-
-    <div class="checkout-seat">@assentoCodigo</div>
-
-    <div class="checkout-divider"></div>
-
-    <p class="checkout-info">
-        <i class="fa-regular fa-clock me-1"></i>
-        O ingresso está reservado. Você tem <strong>15 minutos</strong> para concluir o pagamento antes que a reserva expire.
-    </p>
-
-    <form asp-controller="Ticket" asp-action="Pagar" method="post" class="mb-3">
-        <input type="hidden" name="assentoCodigo" value="@assentoCodigo" />
-        <button type="submit" class="btn btn-success w-100">
-            <i class="fa-solid fa-circle-check me-2"></i>Confirmar Pagamento
-        </button>
-    </form>
-
-    <a asp-controller="Ticket" asp-action="Index" asp-route-eventId="@ViewBag.EventId" class="btn btn-outline-secondary w-100">
-        <i class="fa-solid fa-arrow-left me-2"></i>Voltar ao Mapa de Assentos
-    </a>
-
+    </div>
 </div>

@@ -30,10 +30,10 @@
 <body>
 
     <header>
-        <nav class="tm-navbar navbar navbar-expand-md">
+        <nav class="tm-navbar navbar navbar-expand-md navbar-light">
             <div class="container">
 
-                <a class="navbar-brand" asp-area="" asp-controller="Ticket" asp-action="Index">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="fa-solid fa-ticket"></i>
                     TicketMaster
                 </a>
@@ -47,7 +47,7 @@
                 <div class="collapse navbar-collapse" id="navMain">
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Ticket" asp-action="Index">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
                                 <i class="fa-regular fa-map me-1"></i>Ingressos
                             </a>
                         </li>
@@ -66,7 +66,7 @@
         </nav>
     </header>
 
-    <main role="main" class="py-4">
+    <main role="main" class="py-4 py-md-5">
         <div class="container">
             @RenderBody()
         </div>
@@ -78,8 +78,11 @@
                 <i class="fa-solid fa-ticket me-1"></i>
                 &copy; @DateTime.Now.Year TicketMaster
             </span>
-                </div>
-            </footer>
+            <span class="d-inline-flex align-items-center gap-2">
+                <span class="badge text-bg-dark-subtle border">Plataforma de ingressos</span>
+            </span>
+        </div>
+    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
