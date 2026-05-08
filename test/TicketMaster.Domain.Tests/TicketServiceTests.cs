@@ -176,7 +176,7 @@ public class TicketServiceTests
         _repositoryMock.Setup(r => r.ObterTodosAsync()).ReturnsAsync(tickets);
 
         // Act
-        var resultado = await _service.ObterTodosAsync();
+        var resultado = await _service.ObterPorEventoAsync(_eventId);
 
         // Assert
         Assert.Equal(2, resultado.Count());

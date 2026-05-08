@@ -651,6 +651,130 @@ main { flex: 1; }
 }
 
 /* ==============================================
+   MAPA DINÂMICO DE ASSENTOS (VIEW TICKET/INDEX)
+   ============================================== */
+.seat-map-page {
+  max-width: 100%;
+}
+
+.seat-map-header {
+  margin-bottom: 1.25rem;
+}
+
+.seat-map-event-name {
+  color: var(--color-accent);
+}
+
+.seat-map-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow-x: auto;
+  padding: 0.5rem;
+}
+
+.seat-map-grid {
+  --max-cols: 1;
+  --max-rows: 1;
+  --seat-size: 60px;
+  display: grid;
+  grid-template-columns: repeat(var(--max-cols), var(--seat-size));
+  grid-template-rows: repeat(var(--max-rows), var(--seat-size));
+  gap: 10px;
+  justify-content: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+  min-width: fit-content;
+}
+
+.seat-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.seat-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.seat-legend-dot {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  border: 1px solid transparent;
+}
+
+.seat-btn {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.seat-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.seat-disponivel {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.seat-reservado {
+  background-color: #ffc107;
+  color: #181818;
+}
+
+.seat-vendido {
+  background-color: #dc3545;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  .seat-map-grid {
+    --seat-size: 52px;
+    gap: 8px;
+    padding: 1rem;
+  }
+
+  .seat-btn {
+    font-size: 0.78rem;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .seat-map-grid {
+    --seat-size: 44px;
+    gap: 7px;
+    padding: 0.85rem;
+  }
+
+  .seat-map-legend {
+    gap: 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* ==============================================
    RESPONSIVIDADE
    ============================================== */
 @media (max-width: 768px) {
@@ -665,4 +789,34 @@ main { flex: 1; }
   html { font-size: 15px; }
   .auth-card  { padding: 1.75rem 1.25rem; border-radius: 16px; }
   .auth-title { font-size: 1.6rem; }
+}
+.seat-minha-reserva { background-color: #0dcaf0; color: black; border: 2px solid #055160; }
+
+/* ==============================================
+   MODAL - TEMA ESCURO
+   ============================================== */
+[data-theme="dark"] .modal-content {
+    background-color: #1e1e2e;
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .modal-title {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="dark"] .modal-backdrop {
+    --bs-backdrop-opacity: 0.65;
 }

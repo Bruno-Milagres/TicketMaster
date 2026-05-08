@@ -71,4 +71,19 @@ public sealed class Ticket
 
         return Result.Success();
     }
+
+    public Result CancelarReservaPeloUsuario(Guid usuarioId)
+    {
+        if (Status != TicketStatus.Reservado)
+            return Result.Failure("Este ingresso não está reservado.");
+
+        if (UsuarioId != usuarioId)
+            return Result.Failure("Você só pode cancelar a sua própria reserva.");
+
+        Status = TicketStatus.Disponivel;
+        UsuarioId = null;
+        DataExpiraReserva = null;
+
+        return Result.Success();
+    }
 }

@@ -1,3 +1,29 @@
-@{
-    // Redireciona para o mapa de ingressos (controlado pelo HomeController.Index)
-}
+@model IEnumerable<TicketMaster.Domain.Entities.Event>
+
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold">🎭 TicketMaster Hub</h1>
+    <p class="lead text-muted">Escolha o seu próximo espetáculo e garanta seu lugar na primeira fila!</p>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach (var evento in Model)
+    {
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">@evento.Title</h5>
+                    <p class="card-text text-muted">
+                        <i class="fa-regular fa-calendar-days me-2"></i>
+                        @evento.EventDate.ToString("dd/MM/yyyy HH:mm")
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a asp-controller="Ticket" asp-action="Index" asp-route-eventId="@evento.Id"
+                           class="btn btn-primary w-100">
+                        Ver Ingressos
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
