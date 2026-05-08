@@ -37,31 +37,26 @@
     </div>
 </div>
 
-<!-- Modal de gerenciamento de reserva -->
-<div class="modal fade" id="modalMinhaReserva" tabindex="-1" aria-labelledby="modalMinhaReservaLabel" aria-hidden="true">
+<!-- Modal de confirmação de cancelamento -->
+<div class="modal fade" id="modalConfirmarCancelamento" tabindex="-1" aria-labelledby="modalCancelLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalMinhaReservaLabel">
-                    <i class="fa-solid fa-couch me-2"></i>Gerenciar Reserva
+                <h5 class="modal-title" id="modalCancelLabel">
+                    <i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i>Cancelar Reserva
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
-                <p id="modalReservaMsg"></p>
+                <p id="modalCancelMsg"></p>
             </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-outline-danger" id="btnCancelarReserva">
-                    <i class="fa-solid fa-xmark me-1"></i>Cancelar Reserva
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Não, voltar
                 </button>
-                <div>
-                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
-                        <i class="fa-solid fa-arrow-left me-1"></i>Voltar
-                    </button>
-                    <button type="button" class="btn btn-success" id="btnIrPagamento">
-                        <i class="fa-solid fa-credit-card me-1"></i>Ir ao Pagamento
-                    </button>
-                </div>
+                <button type="button" class="btn btn-danger" id="btnConfirmarCancelamento">
+                    <i class="fa-solid fa-xmark me-1"></i>Sim, cancelar
+                </button>
             </div>
         </div>
     </div>
@@ -78,7 +73,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
         const eventId = document.getElementById("hiddenEventId")?.value;
-        const currentUserId = document.getElementById("hiddenCurrentUserId")?.value; 
+        const currentUserId = document.getElementById("hiddenCurrentUserId")?.value;
         const mapContainer = document.getElementById("seat-map");
 
         if (!eventId || !mapContainer || !roomLayout?.Seats) {
@@ -90,7 +85,7 @@
         roomLayout.Seats.forEach(coord => {
         const ticketState = tickets.find(t => t.AssentoCodigo === coord.SeatCode);
         const status = ticketState ? ticketState.Status : 0;
-        const donoId = ticketState ? ticketState.UsuarioId : null; 
+        const donoId = ticketState ? ticketState.UsuarioId : null;
 
         const btn = document.createElement("button");
         btn.id = `btn-${coord.SeatCode}`;
@@ -129,8 +124,9 @@
         }
 
         function applySeatStatus(button, status, donoId, codigo) {
-        button.classList.remove("seat-disponivel", "seat-reservado", "seat-vendido", "seat-minha-reserva");
-        button.onclick = null; 
+        button.classList.remove("seat-disponivel", "seat-reservado", "seat-vendido", "seat-minha-reserva", "seat-pago");
+        button.onclick = null;
+        button.innerHTML = codigo;
 
         if (status === 0) {
         button.classList.add("seat-disponivel");
@@ -143,7 +139,17 @@
         if (currentUserId && donoId && currentUserId.toLowerCase() === donoId.toLowerCase()) {
         button.classList.add("seat-minha-reserva");
         button.disabled = false;
-        button.onclick = () => gerenciarMinhaReserva(codigo);
+        button.innerHTML = `
+            <span class="seat-code-label">${codigo}</span>
+            <div class="seat-inline-actions">
+                <button class="seat-action-pay" title="Ir ao Pagamento" onclick="event.stopPropagation(); irPagamento('${codigo}')">
+                    <i class="fa-solid fa-credit-card"></i>
+                </button>
+                <button class="seat-action-cancel" title="Cancelar Reserva" onclick="event.stopPropagation(); confirmarCancelamento('${codigo}')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>`;
+        button.onclick = null;
         } else {
         button.classList.add("seat-reservado");
         button.disabled = true;
@@ -151,27 +157,28 @@
         return;
         }
 
+        if (status === 2) {
+        button.classList.add("seat-pago");
+        button.disabled = true;
+        return;
+        }
+
         button.classList.add("seat-vendido");
         button.disabled = true;
         }
 
-        function gerenciarMinhaReserva(codigo) {
-        document.getElementById('modalReservaMsg').textContent =
-            `O assento ${codigo} está reservado para você! Deseja ir ao pagamento ou cancelar a reserva?`;
+        function irPagamento(codigo) {
+        window.location.href = `/Ticket/Checkout?codigo=${codigo}&eventId=${eventId}`;
+        }
 
-        const btnIr = document.getElementById('btnIrPagamento');
-        const btnCancelar = document.getElementById('btnCancelarReserva');
-
-        btnIr.onclick = () => {
-            window.location.href = `/Ticket/Checkout?codigo=${codigo}&eventId=${eventId}`;
-        };
-
-        btnCancelar.onclick = () => {
-            bootstrap.Modal.getInstance(document.getElementById('modalMinhaReserva')).hide();
+        function confirmarCancelamento(codigo) {
+        document.getElementById('modalCancelMsg').textContent =
+            `Tem certeza que deseja cancelar a reserva do assento ${codigo}? Ele ficará disponível para outras pessoas.`;
+        document.getElementById('btnConfirmarCancelamento').onclick = () => {
+            bootstrap.Modal.getInstance(document.getElementById('modalConfirmarCancelamento')).hide();
             cancelarReservaPost(codigo);
         };
-
-        new bootstrap.Modal(document.getElementById('modalMinhaReserva')).show();
+        new bootstrap.Modal(document.getElementById('modalConfirmarCancelamento')).show();
         }
 
         function reservarAssento(codigo) {

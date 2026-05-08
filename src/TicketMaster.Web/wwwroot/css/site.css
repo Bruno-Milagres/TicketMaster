@@ -790,7 +790,34 @@ main { flex: 1; }
   .auth-card  { padding: 1.75rem 1.25rem; border-radius: 16px; }
   .auth-title { font-size: 1.6rem; }
 }
-.seat-minha-reserva { background-color: #0dcaf0; color: black; border: 2px solid #055160; }
+.seat-minha-reserva { background-color: #0dcaf0; color: black; border: 2px solid #055160; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.seat-pago          { background-color: #198754; color: white; border: 2px solid #0f5132; cursor: not-allowed; }
+
+.seat-code-label { font-size: 0.7rem; font-weight: 700; line-height: 1; }
+
+.seat-inline-actions { display: flex; gap: 3px; }
+
+.seat-action-pay,
+.seat-action-cancel {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.seat-action-pay    { background: rgba(0,0,0,0.18); color: #000; }
+.seat-action-cancel { background: rgba(180,0,0,0.2); color: #7a0000; }
+.seat-action-pay:hover    { background: rgba(0,0,0,0.35); }
+.seat-action-cancel:hover { background: rgba(180,0,0,0.45); color: #fff; }
+
+[data-theme="dark"] .seat-action-pay    { background: rgba(255,255,255,0.2); color: #000; }
+[data-theme="dark"] .seat-action-cancel { background: rgba(255,80,80,0.3);   color: #400; }
 
 /* ==============================================
    MODAL - TEMA ESCURO
