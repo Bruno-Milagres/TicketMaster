@@ -1,39 +1,81 @@
 @model IEnumerable<TicketMaster.Domain.Entities.Ticket>
 @using System.Text.Json
+@using System.Linq
 
 @{
     ViewData["Title"] = "Mapa de Assentos";
 }
 
 <div class="seat-map-page">
-    <div class="seat-map-header text-center mb-4">
-        <h1 class="ticket-page-title mb-2">
-            <i class="fa-solid fa-ticket me-2"></i>Ingressos para:
-            <span class="seat-map-event-name">@ViewBag.EventName</span>
-        </h1>
-        <p class="ticket-page-subtitle mb-3">Selecione um assento disponível para continuar com a reserva.</p>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">
-            <i class="fa-solid fa-arrow-left me-1"></i>Voltar para o Hub
-        </a>
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success d-flex align-items-center gap-2" role="alert">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>@TempData["Sucesso"]</span>
+        </div>
+    }
+
+    @if (TempData["Erro"] != null)
+    {
+        <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <span>@TempData["Erro"]</span>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="row g-0 align-items-center">
+            <div class="col-12 col-md-8">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span class="badge text-bg-primary">Mapa de Assentos</span>
+                        <span class="badge text-bg-secondary">@ViewBag.EventName</span>
+                    </div>
+                    <h1 class="ticket-page-title mb-2">
+                        <i class="fa-solid fa-ticket me-2"></i>Selecione seu assento
+                    </h1>
+                    <p class="ticket-page-subtitle mb-3">Escolha um assento disponível para continuar com a reserva.</p>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-arrow-left me-1"></i>Voltar para o Hub
+                    </a>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                @* Placeholder: adicione a imagem em wwwroot/img/seat-map-banner.jpg *@
+                <img src="~/img/seat-map-banner.jpg" class="img-fluid w-100 rounded-end placeholder-img seat-map-banner" alt="Ilustração do mapa de assentos" />
+            </div>
+        </div>
     </div>
 
-    <div class="seat-map-legend mb-3" aria-label="Legenda de status dos assentos">
-        <span class="seat-legend-item">
-            <span class="seat-legend-dot seat-disponivel"></span>Disponível
-        </span>
-        <span class="seat-legend-item">
-            <span class="seat-legend-dot seat-reservado"></span>Reservado
-        </span>
-        <span class="seat-legend-item">
-            <span class="seat-legend-dot seat-vendido"></span>Vendido
-        </span>
-        <span class="seat-legend-item">
-            <span class="seat-legend-dot seat-minha-reserva"></span>Minha Reserva
-        </span>
-    </div>
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Nenhum ingresso foi configurado para este evento.</span>
+        </div>
+    }
 
-    <div class="seat-map-wrapper">
-        <div id="seat-map" class="seat-map-grid" aria-live="polite"></div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-3 p-md-4">
+            <div class="seat-map-legend mb-3" aria-label="Legenda de status dos assentos">
+                <span class="seat-legend-item">
+                    <span class="seat-legend-dot seat-disponivel"></span>Disponível
+                </span>
+                <span class="seat-legend-item">
+                    <span class="seat-legend-dot seat-reservado"></span>Reservado
+                </span>
+                <span class="seat-legend-item">
+                    <span class="seat-legend-dot seat-vendido"></span>Vendido
+                </span>
+                <span class="seat-legend-item">
+                    <span class="seat-legend-dot seat-minha-reserva"></span>Minha Reserva
+                </span>
+            </div>
+
+            <div class="seat-map-wrapper">
+                <div id="seat-map" class="seat-map-grid" aria-live="polite"></div>
+            </div>
+        </div>
     </div>
 </div>
 
