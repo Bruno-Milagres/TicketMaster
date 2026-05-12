@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -29,5 +30,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>f726b266-8b79-4b70-9784-eb7fc81d34b5</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TicketMaster.IntegrationTests" />
+  </ItemGroup>
 
 </Project>
