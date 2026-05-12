@@ -1,4 +1,7 @@
-﻿namespace TicketMaster.Domain.Entities;
+using TicketMaster.Domain.Common;
+using TicketMaster.Domain.Enums;
+
+namespace TicketMaster.Domain.Entities;
 
 public class Event
 {
@@ -6,9 +9,10 @@ public class Event
     public string Title { get; private set; }
     public DateTime EventDate { get; private set; }
     public Guid RoomId { get; private set; }
+    public EventStatus Status { get; private set; }
 
     //============================================================================
-    // Contrutor privado para o EF
+    // Construtor privado para o EF
     //============================================================================
     public Event(string title, DateTime eventDate, Guid roomId)
     {
@@ -25,5 +29,30 @@ public class Event
         Title = title;
         EventDate = eventDate;
         RoomId = roomId;
+        Status = EventStatus.Rascunho;
+    }
+
+    //============================================================================
+    // Publica o evento, tornando-o visível para reserva de ingressos.
+    //============================================================================
+    public Result Publicar()
+    {
+        if (Status != EventStatus.Rascunho)
+            return Result.Failure("Apenas eventos em rascunho podem ser publicados.");
+
+        Status = EventStatus.Publicado;
+        return Result.Success();
+    }
+
+    //============================================================================
+    // Cancela o evento. Só pode ser cancelado se estiver publicado.
+    //============================================================================
+    public Result Cancelar()
+    {
+        if (Status != EventStatus.Publicado)
+            return Result.Failure("Apenas eventos publicados podem ser cancelados.");
+
+        Status = EventStatus.Cancelado;
+        return Result.Success();
     }
 }

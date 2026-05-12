@@ -35,8 +35,9 @@ public static class DataSeeder
         var sala = new Room("Cine Master - Sala 01", layout);
         context.Rooms.Add(sala);
 
-        // 3. Criamos o Evento vinculado à Sala
+        // 3. Criamos o Evento vinculado à Sala e publicamos
         var show = new Event("O Retorno do Tech Lead", DateTime.UtcNow.AddDays(7), sala.Id);
+        show.Publicar();
         context.Events.Add(show);
 
         // 4. Criamos os Ingressos vinculados ao Evento

@@ -26,10 +26,11 @@ public sealed class EventRepositoryTests
         var amanha = DateTime.UtcNow.AddDays(1);
         var depois = DateTime.UtcNow.AddDays(7);
 
-        context.Events.AddRange(
-            new Event("Evento Futuro", amanha, Guid.NewGuid()),
-            new Event("Evento Depois", depois, Guid.NewGuid())
-        );
+        var evento1 = new Event("Evento Futuro", amanha, Guid.NewGuid());
+        evento1.Publicar();
+        var evento2 = new Event("Evento Depois", depois, Guid.NewGuid());
+        evento2.Publicar();
+        context.Events.AddRange(evento1, evento2);
         await context.SaveChangesAsync();
 
         // Act

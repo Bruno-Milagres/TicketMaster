@@ -18,6 +18,7 @@ public class EventRepository : IEventRepository
     public async Task<IEnumerable<Event>> ListarEventosAtivosAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Events
+            .Where(e => e.Status == Domain.Enums.EventStatus.Publicado)
             .OrderBy(e => e.EventDate)
             .ToListAsync(cancellationToken);
     }
