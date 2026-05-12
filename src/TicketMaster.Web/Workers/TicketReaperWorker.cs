@@ -37,7 +37,7 @@ public class TicketReaperWorker : BackgroundService
             {
                 var ticketService = scope.ServiceProvider.GetRequiredService<TicketService>();
 
-                var assentosLiberados = await ticketService.ExpirarReservasVencidasAsync();
+                var assentosLiberados = await ticketService.ExpirarReservasVencidasAsync(stoppingToken);
 
                 foreach (var assentoCodigo in assentosLiberados)
                 {

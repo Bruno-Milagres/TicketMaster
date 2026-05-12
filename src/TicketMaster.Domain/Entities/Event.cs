@@ -12,6 +12,15 @@ public class Event
     //============================================================================
     public Event(string title, DateTime eventDate, Guid roomId)
     {
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ArgumentException("O título do evento não pode ser vazio.", nameof(title));
+
+        if (eventDate <= DateTime.UtcNow)
+            throw new ArgumentException("A data do evento deve ser futura.", nameof(eventDate));
+
+        if (roomId == Guid.Empty)
+            throw new ArgumentException("A sala do evento é obrigatória.", nameof(roomId));
+
         Id = Guid.NewGuid();
         Title = title;
         EventDate = eventDate;

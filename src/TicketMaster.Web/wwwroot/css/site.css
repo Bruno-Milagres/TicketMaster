@@ -909,3 +909,41 @@ main { flex: 1; }
 [data-theme="dark"] .modal-backdrop {
     --bs-backdrop-opacity: 0.65;
 }
+
+/* ==============================================
+   FALLBACK PARA IMAGENS QUEBRADAS
+   ============================================== */
+.img-fallback {
+    background: linear-gradient(135deg, var(--color-surface-alt), var(--color-bg));
+    min-height: 180px;
+    gap: 8px;
+    border-radius: var(--radius-card);
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+    border: 1px dashed var(--color-border);
+}
+
+.img-fallback i {
+    opacity: 0.45;
+    transition: opacity 0.2s;
+}
+
+.img-fallback span {
+    opacity: 0.5;
+    letter-spacing: 0.02em;
+}
+
+/* Ajustes para contextos específicos */
+.img-fallback.card-img-top {
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+
+.img-fallback.rounded-start {
+    border-radius: var(--radius-card) 0 0 var(--radius-card);
+    min-height: 100%;
+}
+
+.img-fallback.rounded-end {
+    border-radius: 0 var(--radius-card) var(--radius-card) 0;
+    min-height: 100%;
+}

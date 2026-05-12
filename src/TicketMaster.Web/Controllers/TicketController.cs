@@ -30,7 +30,7 @@ public class TicketController : Controller
     // Redireciona para a Home 
     //=====================================================
     [HttpGet]
-    public async Task<IActionResult> Index(Guid eventId)
+    public async Task<IActionResult> Index(Guid eventId, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -40,10 +40,10 @@ public class TicketController : Controller
         if (eventId == Guid.Empty)
             return RedirectToAction(nameof(Index), "Home");
 
-        var evento = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId);
+        var evento = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
         if (evento == null) return NotFound("Evento não encontrado.");
-        var sala = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == evento.RoomId);
-        var tickets = await _ticketService.ObterPorEventoAsync(eventId);
+        var sala = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == evento.RoomId, cancellationToken);
+        var tickets = await _ticketService.ObterPorEventoAsync(eventId, cancellationToken);
 
         ViewBag.CurrentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         ViewBag.EventId = eventId;
@@ -74,7 +74,7 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId)
+    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -85,7 +85,7 @@ public class TicketController : Controller
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuarioLogadoId = Guid.Parse(userIdString!);
 
-        var resultado = await _ticketService.ReservarAssentoAsync(assentoCodigo, usuarioLogadoId, eventId);
+        var resultado = await _ticketService.ReservarAssentoAsync(assentoCodigo, usuarioLogadoId, eventId, cancellationToken);
 
         if (!resultado.IsSuccess)
         {
@@ -112,7 +112,7 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Pagar(string assentoCodigo, Guid eventId)
+    public async Task<IActionResult> Pagar(string assentoCodigo, Guid eventId, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -125,7 +125,7 @@ public class TicketController : Controller
 
         var comando = new PagamentoCommand(assentoCodigo, usuarioLogadoId, eventId);
 
-        await _publishEndpoint.Publish(comando);
+        await _publishEndpoint.Publish(comando, cancellationToken);
 
         TempData["Sucesso"] = $"Seu pedido de pagamento para o assento {assentoCodigo} foi para a fila. Aguarde a confirmação no mapa!";
 
@@ -147,7 +147,7 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CancelarReserva(string assentoCodigo, Guid eventId)
+    public async Task<IActionResult> CancelarReserva(string assentoCodigo, Guid eventId, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -158,7 +158,7 @@ public class TicketController : Controller
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuarioLogadoId = Guid.Parse(userIdString!);
 
-        var resultado = await _ticketService.CancelarReservaAsync(assentoCodigo, usuarioLogadoId, eventId);
+        var resultado = await _ticketService.CancelarReservaAsync(assentoCodigo, usuarioLogadoId, eventId, cancellationToken);
 
         if (resultado.IsSuccess)
         {

@@ -40,7 +40,8 @@ public class PagamentoCommandConsumer : IConsumer<PagamentoCommand>
         var resultado = await _ticketService.ConfirmarPagamentoAsync(
             comando.AssentoCodigo,
             comando.UsuarioId,
-            comando.EventId);
+            comando.EventId,
+            context.CancellationToken);
 
         if (resultado.IsSuccess)
         {

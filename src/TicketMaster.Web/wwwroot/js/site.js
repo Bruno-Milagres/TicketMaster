@@ -10,17 +10,47 @@
     document.documentElement.setAttribute('data-theme', theme);
 })();
 
-document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('btn-theme-toggle');
-    if (!btn) return;
+// ==============================================
+// FALLBACK PARA IMAGENS QUEBRADAS
+// ==============================================
+function handleImageError(img) {
+    if (img.dataset.fallback === 'applied') return;
+    img.dataset.fallback = 'applied';
 
-    function applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('tm-theme', theme);
+    var fallback = document.createElement('div');
+    fallback.className = 'img-fallback d-flex flex-column align-items-center justify-content-center';
+    fallback.innerHTML = '<i class="fa-solid fa-image fa-3x mb-2"></i><span class="small">Imagem indisponível</span>';
+
+    // Copia classes relevantes do img original (ex: card-img-top, rounded-start, etc.)
+    var copyClasses = ['card-img-top', 'rounded-start', 'rounded-end', 'placeholder-img', 'seat-map-banner', 'checkout-image'];
+    copyClasses.forEach(function(cls) {
+        if (img.classList.contains(cls)) fallback.classList.add(cls);
+    });
+
+    img.parentNode.replaceChild(fallback, img);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Tema claro/escuro
+    const btn = document.getElementById('btn-theme-toggle');
+    if (btn) {
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('tm-theme', theme);
+        }
+
+        btn.addEventListener('click', function () {
+            const current = document.documentElement.getAttribute('data-theme');
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
     }
 
-    btn.addEventListener('click', function () {
-        const current = document.documentElement.getAttribute('data-theme');
-        applyTheme(current === 'dark' ? 'light' : 'dark');
+    // Fallback para imagens quebradas
+    document.querySelectorAll('img').forEach(function(img) {
+        if (img.complete && (img.naturalWidth === 0 || img.naturalHeight === 0)) {
+            handleImageError(img);
+        } else {
+            img.addEventListener('error', function() { handleImageError(img); });
+        }
     });
 });

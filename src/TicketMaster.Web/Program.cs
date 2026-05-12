@@ -145,42 +145,7 @@ app.MapHub<TicketHub>("/ticketHub");
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await context.Database.EnsureCreatedAsync();
-
-    if (!await context.Events.AnyAsync())
-    {
-        // 1. Criamos o Layout da Sala (3x3 com um corredor no meio)
-        var layout = new Room.RoomLayout
-        {
-            MaxColumns = 3,
-            MaxRows = 3,
-            Seats = new List<Room.SeatCoordinate>
-            {
-                new() { SeatCode = "A1", CoordX = 1, CoordY = 1 },
-                new() { SeatCode = "A3", CoordX = 3, CoordY = 1 },
-                new() { SeatCode = "B1", CoordX = 1, CoordY = 2 },
-                new() { SeatCode = "B3", CoordX = 3, CoordY = 2 }
-            }
-        };
-
-        // 2. Criamos a Sala
-        var sala = new Room("Cine Master - Sala 01", layout);
-        context.Rooms.Add(sala);
-
-        // 3. Criamos o Evento vinculado à Sala
-        var show = new Event("O Retorno do Tech Lead", DateTime.UtcNow.AddDays(7), sala.Id);
-        context.Events.Add(show);
-
-        // 4. Criamos os Ingressos vinculados ao Evento
-        context.Tickets.AddRange(
-            new Ticket(show.Id, "A1"),
-            new Ticket(show.Id, "A3"),
-            new Ticket(show.Id, "B1"),
-            new Ticket(show.Id, "B3")
-        );
-
-        await context.SaveChangesAsync();
-    }
+    await DataSeeder.SeedAsync(context);
 }
 
 //==============================================

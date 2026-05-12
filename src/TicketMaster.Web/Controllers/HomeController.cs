@@ -19,9 +19,9 @@ public class HomeController : Controller
     //========================================================================================================================
     // Redireciona para a lista de eventos ativos
     //========================================================================================================================
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
     {
-        var eventos = await _eventService.ListarEventosAtivosAsync();
+        var eventos = await _eventService.ListarEventosAtivosAsync(cancellationToken);
         return View(eventos);
     }
 }
