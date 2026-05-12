@@ -20,10 +20,17 @@ public sealed class Ticket
     public Guid Versao { get; private set; }
 
     //============================================================================
-    // Construtor privado exigido pelo EF Core para materialização via reflexão.
+    // Construtor exigido pelo EF Core para materialização via reflexão.
+    // Valida argumentos obrigatórios antes de criar a instância.
     //============================================================================
     public Ticket(Guid eventId, string assentoCodigo)
     {
+        if (eventId == Guid.Empty)
+            throw new ArgumentException("O evento é obrigatório.", nameof(eventId));
+
+        if (string.IsNullOrWhiteSpace(assentoCodigo))
+            throw new ArgumentException("O código do assento não pode ser vazio.", nameof(assentoCodigo));
+
         Id = Guid.NewGuid();
         EventId = eventId;
         AssentoCodigo = assentoCodigo;

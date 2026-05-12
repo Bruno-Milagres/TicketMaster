@@ -10,6 +10,6 @@ namespace TicketMaster.Application.Interfaces
     public interface IEventRepository
     {
         //Lista todos os eventos ativos
-        Task<IEnumerable<Event>> ListarEventosAtivosAsync();
+        Task<IEnumerable<Event>> ListarEventosAtivosAsync(CancellationToken cancellationToken = default);
     }
 }

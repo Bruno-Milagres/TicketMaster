@@ -3,3 +3,6 @@ bin/
 obj/
 *.user
 *.suo
+
+# Variáveis de ambiente — contém senhas
+.env

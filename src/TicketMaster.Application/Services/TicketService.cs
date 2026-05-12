@@ -14,18 +14,18 @@ public class TicketService
         _ticketRepository = ticketRepository;
     }
 
-    public async Task<IEnumerable<Ticket>> ObterPorEventoAsync(Guid eventId)
+    public async Task<IEnumerable<Ticket>> ObterPorEventoAsync(Guid eventId, CancellationToken cancellationToken = default)
     {
-        return await _ticketRepository.ObterPorEventoAsync(eventId);
+        return await _ticketRepository.ObterPorEventoAsync(eventId, cancellationToken);
     }
 
     //============================================================================================================================
     // Reserva um assento para o usuário informado.
     // Retorna falha se o assento não existir, já estiver ocupado ou houver conflito de concorrência.
     //============================================================================================================================
-    public async Task<Result> ReservarAssentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
+    public async Task<Result> ReservarAssentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId, CancellationToken cancellationToken = default)
     {
-        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId, cancellationToken);
 
         if (ticket == null)
             return Result.Failure("Assento não encontrado no sistema.");
@@ -37,7 +37,7 @@ public class TicketService
 
         try
         {
-            await _ticketRepository.AtualizarAsync(ticket);
+            await _ticketRepository.AtualizarAsync(ticket, cancellationToken);
             return Result.Success();
         }
         catch (ConcurrencyException)
@@ -50,9 +50,9 @@ public class TicketService
     // Libera todos os ingressos com reservas expiradas, devolvendo-os ao estoque.
     // Chamado periodicamente pelo <see cref="Web.Workers.TicketReaperWorker"/>.
     //============================================================================================================================
-    public async Task<List<string>> ExpirarReservasVencidasAsync()
+    public async Task<List<string>> ExpirarReservasVencidasAsync(CancellationToken cancellationToken = default)
     {
-        var ingressosVencidos = await _ticketRepository.ObterReservasVencidasAsync();
+        var ingressosVencidos = await _ticketRepository.ObterReservasVencidasAsync(cancellationToken);
         var assentosLiberados = new List<string>();
 
         foreach (var ticket in ingressosVencidos)
@@ -61,7 +61,7 @@ public class TicketService
 
             if (resultado.IsSuccess)
             {
-                await _ticketRepository.AtualizarAsync(ticket);
+                await _ticketRepository.AtualizarAsync(ticket, cancellationToken);
 
                 assentosLiberados.Add(ticket.AssentoCodigo);
             }
@@ -73,9 +73,9 @@ public class TicketService
     //============================================================================================================================
     // Confirma o pagamento de um ingresso reservado, associando-o ao usuário e marcando-o como vendido.
     //============================================================================================================================
-    public async Task<Result> ConfirmarPagamentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
+    public async Task<Result> ConfirmarPagamentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId, CancellationToken cancellationToken = default)
     {
-        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId, cancellationToken);
         if (ticket == null)
             return Result.Failure("Assento não encontrado no sistema.");
         var resultado = ticket.ConfirmarPagamento(usuarioId);
@@ -83,7 +83,7 @@ public class TicketService
             return resultado;
         try
         {
-            await _ticketRepository.AtualizarAsync(ticket);
+            await _ticketRepository.AtualizarAsync(ticket, cancellationToken);
             return Result.Success();
         }
         catch (ConcurrencyException)
@@ -95,15 +95,15 @@ public class TicketService
     //============================================================================================================================
     // Cancela a reserva de um ingresso pelo usuário.
     //============================================================================================================================
-    public async Task<Result> CancelarReservaAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
+    public async Task<Result> CancelarReservaAsync(string assentoCodigo, Guid usuarioId, Guid eventId, CancellationToken cancellationToken = default)
     {
-        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
+        var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId, cancellationToken);
         if (ticket == null) return Result.Failure("Assento não encontrado.");
 
         var resultado = ticket.CancelarReservaPeloUsuario(usuarioId);
         if (!resultado.IsSuccess) return resultado;
 
-        await _ticketRepository.AtualizarAsync(ticket);
+        await _ticketRepository.AtualizarAsync(ticket, cancellationToken);
         return Result.Success();
     }
 }

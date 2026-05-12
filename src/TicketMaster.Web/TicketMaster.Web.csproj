@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\TicketMaster.Application\TicketMaster.Application.csproj" />
@@ -27,6 +27,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>f726b266-8b79-4b70-9784-eb7fc81d34b5</UserSecretsId>
   </PropertyGroup>
 
 </Project>

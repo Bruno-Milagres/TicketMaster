@@ -15,10 +15,10 @@ public class EventRepository : IEventRepository
     }
 
     // Retorna os eventos ordenados por data
-    public async Task<IEnumerable<Event>> ListarEventosAtivosAsync()
+    public async Task<IEnumerable<Event>> ListarEventosAtivosAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Events
             .OrderBy(e => e.EventDate)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 }
