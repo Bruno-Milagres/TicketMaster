@@ -3,3 +3,9 @@ bin/
 obj/
 *.user
 *.suo
+
+# Variáveis de ambiente — contém senhas
+.env
+
+# Plano de análise do projeto (documentação interna)
+PLANO-ANALISE.md

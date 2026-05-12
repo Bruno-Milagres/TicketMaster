@@ -1,27 +1,26 @@
 using MassTransit;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using TicketMaster.Application.Commands.CancelarReserva;
+using TicketMaster.Application.Commands.ReservarAssento;
 using TicketMaster.Application.Messages;
-using TicketMaster.Application.Services;
+using TicketMaster.Application.Queries.ObterIngressosPorEvento;
 using TicketMaster.Infrastructure.Data;
-using TicketMaster.Web.Hubs;
 
 namespace TicketMaster.Web.Controllers;
 
 public class TicketController : Controller
 {
-    private readonly TicketService _ticketService;
-    private readonly IHubContext<TicketHub> _hubContext;
+    private readonly IMediator _mediator;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly AppDbContext _context;
 
-    public TicketController(TicketService ticketService, IHubContext<TicketHub> hubContext, IPublishEndpoint publishEndpoint, AppDbContext context)
+    public TicketController(IMediator mediator, IPublishEndpoint publishEndpoint, AppDbContext context)
     {
-        _ticketService = ticketService;
-        _hubContext = hubContext;
+        _mediator = mediator;
         _publishEndpoint = publishEndpoint;
         _context = context;
     }
@@ -30,7 +29,7 @@ public class TicketController : Controller
     // Redireciona para a Home 
     //=====================================================
     [HttpGet]
-    public async Task<IActionResult> Index(Guid eventId)
+    public async Task<IActionResult> Index(Guid eventId, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -40,10 +39,10 @@ public class TicketController : Controller
         if (eventId == Guid.Empty)
             return RedirectToAction(nameof(Index), "Home");
 
-        var evento = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId);
+        var evento = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
         if (evento == null) return NotFound("Evento não encontrado.");
-        var sala = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == evento.RoomId);
-        var tickets = await _ticketService.ObterPorEventoAsync(eventId);
+        var sala = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == evento.RoomId, cancellationToken);
+        var tickets = await _mediator.Send(new ObterIngressosPorEventoQuery(eventId), cancellationToken);
 
         ViewBag.CurrentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         ViewBag.EventId = eventId;
@@ -74,7 +73,7 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId)
+    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -85,7 +84,9 @@ public class TicketController : Controller
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuarioLogadoId = Guid.Parse(userIdString!);
 
-        var resultado = await _ticketService.ReservarAssentoAsync(assentoCodigo, usuarioLogadoId, eventId);
+        var resultado = await _mediator.Send(
+            new ReservarAssentoCommand(assentoCodigo, usuarioLogadoId, eventId),
+            cancellationToken);
 
         if (!resultado.IsSuccess)
         {
@@ -93,8 +94,7 @@ public class TicketController : Controller
             return RedirectToAction(nameof(Index), new { eventId });
         }
 
-        await _hubContext.Clients.Group(eventId.ToString()).SendAsync("AtualizarAssento", assentoCodigo, "Reservado");
-
+        // Notificação SignalR enviada pelo AssentoReservadoEventHandler
         return RedirectToAction(nameof(Checkout), new { codigo = assentoCodigo, eventId });
     }
 
@@ -112,7 +112,7 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Pagar(string assentoCodigo, Guid eventId)
+    public async Task<IActionResult> Pagar(string assentoCodigo, Guid eventId, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -125,7 +125,7 @@ public class TicketController : Controller
 
         var comando = new PagamentoCommand(assentoCodigo, usuarioLogadoId, eventId);
 
-        await _publishEndpoint.Publish(comando);
+        await _publishEndpoint.Publish(comando, cancellationToken);
 
         TempData["Sucesso"] = $"Seu pedido de pagamento para o assento {assentoCodigo} foi para a fila. Aguarde a confirmação no mapa!";
 
@@ -147,7 +147,7 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CancelarReserva(string assentoCodigo, Guid eventId)
+    public async Task<IActionResult> CancelarReserva(string assentoCodigo, Guid eventId, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -158,11 +158,13 @@ public class TicketController : Controller
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var usuarioLogadoId = Guid.Parse(userIdString!);
 
-        var resultado = await _ticketService.CancelarReservaAsync(assentoCodigo, usuarioLogadoId, eventId);
+        var resultado = await _mediator.Send(
+            new CancelarReservaCommand(assentoCodigo, usuarioLogadoId, eventId),
+            cancellationToken);
 
         if (resultado.IsSuccess)
         {
-            await _hubContext.Clients.Group(eventId.ToString()).SendAsync("AtualizarAssento", assentoCodigo, "Disponivel");
+            // Notificação SignalR enviada pelo ReservaCanceladaEventHandler
             TempData["Sucesso"] = "Sua reserva foi cancelada e o assento está livre novamente.";
         }
         else

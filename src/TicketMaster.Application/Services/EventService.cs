@@ -15,8 +15,8 @@ public class EventService
     //=======================================================================================================
     // Retorna a lista de eventos ativos ordenados por data
     //=======================================================================================================
-    public async Task<IEnumerable<Event>> ListarEventosAtivosAsync()
+    public async Task<IEnumerable<Event>> ListarEventosAtivosAsync(CancellationToken cancellationToken = default)
     {
-        return await _eventRepository.ListarEventosAtivosAsync();
+        return await _eventRepository.ListarEventosAtivosAsync(cancellationToken);
     }
 }

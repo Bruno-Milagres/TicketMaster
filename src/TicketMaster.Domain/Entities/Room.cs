@@ -16,6 +16,12 @@ public class Room
     //============================================================================
     public Room(string name, RoomLayout layout)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("O nome da sala não pode ser vazio.", nameof(name));
+
+        if (layout == null)
+            throw new ArgumentNullException(nameof(layout), "O layout da sala é obrigatório.");
+
         Id = Guid.NewGuid();
         Name = name;
         Layout = layout;

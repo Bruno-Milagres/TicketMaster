@@ -1,12 +1,13 @@
-using Microsoft.AspNetCore.SignalR;
-using TicketMaster.Application.Services;
-using TicketMaster.Web.Hubs;
+using MediatR;
+using TicketMaster.Application.Commands.ExpirarReservasVencidas;
+using TicketMaster.Application.Notifications;
 
 namespace TicketMaster.Web.Workers;
 
 /// <summary>
 /// Background service que libera periodicamente os ingressos com reservas expiradas,
 /// devolvendo-os ao estoque para que outros usuários possam reservá-los.
+/// A notificação SignalR é enviada pelo AssentoLiberadoEventHandler.
 /// </summary>
 public class TicketReaperWorker : BackgroundService
 {
@@ -14,13 +15,11 @@ public class TicketReaperWorker : BackgroundService
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<TicketReaperWorker> _logger;
-    private readonly IHubContext<TicketHub> _hubContext;
 
-    public TicketReaperWorker(IServiceProvider serviceProvider, ILogger<TicketReaperWorker> logger, IHubContext<TicketHub> hubContext)
+    public TicketReaperWorker(IServiceProvider serviceProvider, ILogger<TicketReaperWorker> logger)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        _hubContext = hubContext;
     }
 
     //========================================================================================================================================================
@@ -35,14 +34,15 @@ public class TicketReaperWorker : BackgroundService
         {
             using (var scope = _serviceProvider.CreateScope())
             {
-                var ticketService = scope.ServiceProvider.GetRequiredService<TicketService>();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                var assentosLiberados = await ticketService.ExpirarReservasVencidasAsync();
+                var assentosLiberados = await mediator.Send(
+                    new ExpirarReservasVencidasCommand(),
+                    stoppingToken);
 
                 foreach (var assentoCodigo in assentosLiberados)
                 {
                     _logger.LogInformation("Assento {AssentoCodigo} liberado por expiração de reserva.", assentoCodigo);
-                    await _hubContext.Clients.All.SendAsync("AtualizarAssento", assentoCodigo, "Livre");
                 }
             }
             await Task.Delay(Intervalo, stoppingToken);
