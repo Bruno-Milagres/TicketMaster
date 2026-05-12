@@ -1,0 +1,63 @@
+@page
+@model TicketMaster.Web.Pages.Eventos.IndexModel
+@{
+    ViewData["Title"] = "Eventos";
+}
+
+<div class="mb-4">
+    <h1 class="h3"><i class="fa-solid fa-calendar-days me-2"></i>Eventos Disponíveis</h1>
+    <p class="text-muted">Escolha um evento e garanta seu ingresso.</p>
+</div>
+
+@if (!Model.Eventos.Any())
+{
+    <div class="alert alert-warning">Nenhum evento disponível no momento.</div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var evento in Model.Eventos)
+        {
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100 tm-hover-lift">
+                    <div class="card-img-top placeholder-img d-flex align-items-center justify-content-center"
+                         style="min-height:160px;background:var(--color-surface-alt);">
+                        <i class="fa-solid fa-image fa-3x text-muted" style="opacity:0.4;"></i>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@evento.Title</h5>
+                        <p class="card-text text-muted small">
+                            <i class="fa-regular fa-calendar me-1"></i>@evento.EventDate.ToString("dd/MM/yyyy HH:mm")
+                        </p>
+
+                        @if (Model.TiposPorEvento.TryGetValue(evento.Id, out var tipos) && tipos.Any())
+                        {
+                            <hr class="my-2" />
+                            <ul class="list-unstyled mb-0">
+                                @foreach (var tipo in tipos)
+                                {
+                                    <li class="d-flex justify-content-between align-items-center py-1">
+                                        <span>@tipo.Nome — <strong>@tipo.Preco.ToString("C2")</strong></span>
+                                        <button class="btn btn-sm btn-primary btn-add-carrinho"
+                                                data-tipo-id="@tipo.Id"
+                                                data-event-id="@evento.Id"
+                                                data-evento-nome="@evento.Title"
+                                                data-ingresso-nome="@tipo.Nome"
+                                                data-preco="@tipo.Preco.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                data-quantidade="1">
+                                            <i class="fa-solid fa-cart-plus"></i>
+                                        </button>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/carrinho.js" asp-append-version="true"></script>
+}

@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TicketMaster</title>
 
-    <script type="importmap"></script>
-
     @* Fontes *@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,7 +31,7 @@
         <nav class="tm-navbar navbar navbar-expand-md navbar-light">
             <div class="container">
 
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <a class="navbar-brand" asp-area="" asp-page="/Eventos/Index">
                     <i class="fa-solid fa-ticket"></i>
                     TicketMaster
                 </a>
@@ -47,19 +45,27 @@
                 <div class="collapse navbar-collapse" id="navMain">
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="fa-regular fa-map me-1"></i>Ingressos
+                            <a class="nav-link" asp-area="" asp-page="/Eventos/Index">
+                                <i class="fa-regular fa-calendar me-1"></i>Eventos
                             </a>
                         </li>
                     </ul>
 
                     <div class="d-flex align-items-center gap-2">
                         <partial name="_LoginPartial" />
-                        <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema" aria-label="Alternar tema claro/escuro">
-                            <span class="icon-light"><i class="fa-solid fa-moon"></i></span>
-                            <span class="icon-dark"><i class="fa-solid fa-sun"></i></span>
-                        </button>
                     </div>
+                </div>
+
+                @* Carrinho + Tema — SEMPRE VISÍVEIS (fora do collapse) *@
+                <div class="d-flex align-items-center gap-2 ms-2">
+                    <a href="/Carrinho" class="btn-carrinho-header" title="Carrinho" aria-label="Carrinho de compras">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span class="carrinho-contador badge rounded-pill bg-danger" style="display:none;font-size:0.65rem;position:absolute;top:-6px;right:-8px;min-width:18px;">0</span>
+                    </a>
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema" aria-label="Alternar tema claro/escuro">
+                        <span class="icon-light"><i class="fa-solid fa-moon"></i></span>
+                        <span class="icon-dark"><i class="fa-solid fa-sun"></i></span>
+                    </button>
                 </div>
 
             </div>
@@ -87,6 +93,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/carrinho.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

@@ -1,0 +1,85 @@
+@page
+@model TicketMaster.Web.Pages.Carrinho.CheckoutModel
+@{
+    ViewData["Title"] = "Finalizar Compra";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-4">
+                    <i class="fa-solid fa-credit-card me-2"></i>Finalizar Compra
+                </h1>
+
+                @if (TempData["Erro"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Erro"]</div>
+                }
+
+                <div id="carrinho-resumo" class="mb-4"></div>
+
+                <form method="post" id="checkoutForm">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="clienteNome" class="form-label">Nome completo</label>
+                            <input type="text" name="clienteNome" id="clienteNome" class="form-control" required
+                                   value="@Model.ClienteNome" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="clienteEmail" class="form-label">E-mail</label>
+                            <input type="email" name="clienteEmail" id="clienteEmail" class="form-control" required
+                                   value="@Model.ClienteEmail" />
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="itensJson" id="itensJson" />
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg" id="btnFinalizar">
+                            <i class="fa-solid fa-check-circle me-1"></i>Confirmar Pedido
+                        </button>
+                        <a href="/Carrinho" class="btn btn-outline-secondary">Voltar ao Carrinho</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/carrinho.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var itens = Carrinho.obter();
+            var resumo = document.getElementById('carrinho-resumo');
+            var itensJson = document.getElementById('itensJson');
+
+            if (itens.length === 0) {
+                resumo.innerHTML = '<div class="alert alert-warning">Seu carrinho está vazio.</div>';
+                document.getElementById('btnFinalizar').disabled = true;
+                return;
+            }
+
+            var html = '<h5>Resumo do pedido</h5><ul class="list-group mb-3">';
+            itens.forEach(function (item) {
+                html += '<li class="list-group-item d-flex justify-content-between lh-sm">' +
+                    '<div><h6 class="my-0">' + item.nomeIngresso + '</h6>' +
+                    '<small class="text-muted">' + item.nomeEvento + ' × ' + item.quantidade + '</small></div>' +
+                    '<span class="text-nowrap">' + Carrinho.formatarPreco(item.preco * item.quantidade) + '</span></li>';
+            });
+            html += '<li class="list-group-item d-flex justify-content-between"><strong>Total</strong>' +
+                '<strong>' + Carrinho.formatarPreco(Carrinho.totalPreco()) + '</strong></li>';
+            html += '</ul>';
+            resumo.innerHTML = html;
+
+            itensJson.value = JSON.stringify(itens);
+
+            document.getElementById('checkoutForm').addEventListener('submit', function () {
+                Carrinho.limpar();
+            });
+        });
+    </script>
+}

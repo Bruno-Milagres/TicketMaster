@@ -947,3 +947,66 @@ main { flex: 1; }
     border-radius: 0 var(--radius-card) var(--radius-card) 0;
     min-height: 100%;
 }
+
+/* ==============================================
+   BOTÃO DO CARRINHO NO HEADER
+   ============================================== */
+.btn-carrinho-header {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+    border: 1px solid var(--color-border);
+}
+
+.btn-carrinho-header:hover {
+    background: var(--color-accent);
+    color: var(--color-bg);
+}
+
+/* Torna o toggle sempre visível (inclusive no login) */
+.btn-theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.btn-theme-toggle:hover {
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border-color: var(--color-accent);
+}
+
+[data-theme="dark"] .btn-theme-toggle {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+}
+
+[data-theme="dark"] .btn-theme-toggle:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+/* Legibilidade do tema escuro na página de login do Identity */
+[data-theme="dark"] .card.border-0.shadow-sm {
+    background: var(--color-surface);
+    border-color: var(--color-border) !important;
+}

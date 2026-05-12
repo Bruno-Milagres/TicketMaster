@@ -13,6 +13,9 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<Event> Events { get; set; }
     public DbSet<Room> Rooms { get; set; }
+    public DbSet<TipoIngresso> TiposIngresso { get; set; }
+    public DbSet<Pedido> Pedidos { get; set; }
+    public DbSet<ItemPedido> ItensPedido { get; set; }
 
     //=========================================================
     // Cria as tabelas baseadas nas entidades e configurações

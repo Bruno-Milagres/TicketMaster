@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Admin TicketMaster</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-bg: #1a1a2e;
+            --sidebar-text: #ccc;
+            --sidebar-active: #e94560;
+        }
+        [data-theme="dark"] {
+            --sidebar-bg: #0f0f1a;
+            --sidebar-text: #aaa;
+            --sidebar-active: #ff6b6b;
+        }
+        body { overflow-x: hidden; }
+        .admin-wrapper { display: flex; min-height: 100vh; }
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            transition: transform 0.3s ease;
+            z-index: 1040;
+        }
+        .admin-sidebar .brand {
+            padding: 1.2rem 1.5rem;
+            font-family: var(--font-serif);
+            font-size: 1.3rem;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .admin-sidebar .nav-link {
+            color: var(--sidebar-text);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: 0.15s;
+            text-decoration: none;
+        }
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+        }
+        .admin-sidebar .nav-link.active {
+            border-right: 3px solid var(--sidebar-active);
+        }
+        .admin-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+        .admin-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--color-text);
+        }
+        @@media (max-width: 768px) {
+            .admin-sidebar { transform: translateX(-100%); }
+            .admin-sidebar.open { transform: translateX(0); }
+            .admin-content { margin-left: 0; }
+            .sidebar-toggle { display: inline-block; }
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1039;
+        }
+        .sidebar-overlay.show { display: block; }
+    </style>
+    <script>
+        (function(){
+            var s = localStorage.getItem('tm-theme');
+            var d = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', s || d);
+        })();
+    </script>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="brand">
+                <i class="fa-solid fa-ticket me-2"></i>TicketMaster
+            </div>
+            <nav class="flex-grow-1 mt-2">
+                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Dashboard") == true ? "active" : "")"
+                   href="/Admin/Dashboard">
+                    <i class="fa-solid fa-chart-simple"></i> Dashboard
+                </a>
+                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Eventos") == true ? "active" : "")"
+                   href="/Admin/Eventos">
+                    <i class="fa-solid fa-calendar"></i> Eventos
+                </a>
+                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/TiposIngresso") == true ? "active" : "")"
+                   href="/Admin/TiposIngresso">
+                    <i class="fa-solid fa-ticket"></i> Tipos de Ingresso
+                </a>
+                <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("/Admin/Pedidos") == true ? "active" : "")"
+                   href="/Admin/Pedidos">
+                    <i class="fa-solid fa-box"></i> Pedidos
+                </a>
+            </nav>
+            <div class="p-3 border-top border-light border-opacity-10">
+                <a class="nav-link" href="/">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar ao site
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="admin-content">
+            <div class="admin-topbar">
+                <div>
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 class="h4 mb-0 d-inline-block ms-2">@ViewData["Title"]</h1>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema">
+                        <span class="icon-light"><i class="fa-solid fa-moon"></i></span>
+                        <span class="icon-dark"><i class="fa-solid fa-sun"></i></span>
+                    </button>
+                </div>
+            </div>
+
+            @if (TempData["Sucesso"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Erro"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">@TempData["Erro"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+            document.getElementById('adminSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+        });
+        document.getElementById('sidebarOverlay')?.addEventListener('click', function() {
+            document.getElementById('adminSidebar').classList.remove('open');
+            this.classList.remove('show');
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

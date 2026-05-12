@@ -7,6 +7,8 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/TicketMaster.Domain.Tests/TicketMaster.Domain.Tests.csproj" />
-    <Project Path="test/TicketMaster.IntegrationTests/TicketMaster.IntegrationTests.csproj" />
+    <Project Path="test/TicketMaster.IntegrationTests/TicketMaster.IntegrationTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
   </Folder>
 </Solution>

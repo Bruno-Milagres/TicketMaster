@@ -1,0 +1,22 @@
+@page
+@model TicketMaster.Web.Pages.Carrinho.IndexModel
+@{
+    ViewData["Title"] = "Carrinho de Compras";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-4">
+                    <i class="fa-solid fa-cart-shopping me-2"></i>Seu Carrinho
+                </h1>
+                <div id="carrinho-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/carrinho.js" asp-append-version="true"></script>
+}

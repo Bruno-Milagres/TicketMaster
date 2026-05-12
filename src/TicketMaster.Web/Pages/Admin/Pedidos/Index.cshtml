@@ -1,0 +1,46 @@
+@page
+@model TicketMaster.Web.Pages.Admin.Pedidos.IndexModel
+@{
+    ViewData["Title"] = "Pedidos";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover" id="tabelaPedidos">
+            <thead><tr><th>#</th><th>Cliente</th><th>Data</th><th>Itens</th><th>Total</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody>
+                @foreach (var p in Model.Pedidos)
+                {
+                    <tr>
+                        <td>@p.Id.ToString()[..8]</td>
+                        <td>@(p.ClienteNome ?? p.UsuarioId?[..8])</td>
+                        <td class="text-nowrap small">@p.DataPedido.ToString("dd/MM HH:mm")</td>
+                        <td>@p.Itens.Sum(i => i.Quantidade)</td>
+                        <td class="text-nowrap">@p.Total.ToString("C2")</td>
+                        <td>
+                            <span class="badge @(p.Status == PedidoStatus.Pago ? "bg-success" : p.Status == PedidoStatus.Pendente ? "bg-warning text-dark" : p.Status == PedidoStatus.Cancelado ? "bg-danger" : "bg-info")">
+                                @p.Status
+                            </span>
+                        </td>
+                        <td class="text-nowrap">
+                            <form method="post" asp-page-handler="AlterarStatus" asp-route-id="@p.Id" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <select name="novoStatus" class="form-select form-select-sm d-inline" style="width:auto"
+                                        onchange="this.form.submit()">
+                                    @foreach (var s in Enum.GetValues<PedidoStatus>())
+                                    {
+                                        <option value="@((int)s)" selected="@(s == p.Status)">@s</option>
+                                    }
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>$('#tabelaPedidos').DataTable({ language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json' }, order: [[2, 'desc']] });</script>
+}

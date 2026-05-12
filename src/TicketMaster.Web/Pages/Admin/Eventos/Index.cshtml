@@ -1,0 +1,46 @@
+@page
+@model TicketMaster.Web.Pages.Admin.Eventos.IndexModel
+@{
+    ViewData["Title"] = "Eventos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <span>Total: @Model.Eventos.Count evento(s)</span>
+    <a asp-page="Criar" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus me-1"></i>Novo Evento
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover" id="tabelaEventos">
+            <thead>
+                <tr>
+                    <th>Título</th><th>Data</th><th>Status</th><th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.Eventos)
+                {
+                    <tr>
+                        <td>@e.Title</td>
+                        <td class="text-nowrap">@e.EventDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><span class="badge @(e.Status == EventStatus.Publicado ? "bg-success" : e.Status == EventStatus.Rascunho ? "bg-warning text-dark" : "bg-danger")">@e.Status</span></td>
+                        <td class="text-nowrap">
+                            <a asp-page="Editar" asp-route-id="@e.Id" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
+                            <form asp-page-handler="Excluir" asp-route-id="@e.Id" method="post" style="display:inline"
+                                  onsubmit="return confirm('Excluir evento @e.Title?')">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>$('#tabelaEventos').DataTable({ language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json' } });</script>
+}

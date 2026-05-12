@@ -1,0 +1,83 @@
+@page
+@model TicketMaster.Web.Pages.Admin.Dashboard.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div><h6 class="text-muted mb-1">Pedidos no Mês</h6>
+                        <h2 class="mb-0">@Model.PedidosNoMes</h2></div>
+                    <i class="fa-solid fa-box fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div><h6 class="text-muted mb-1">Ingressos Vendidos</h6>
+                        <h2 class="mb-0">@Model.IngressosVendidos</h2></div>
+                    <i class="fa-solid fa-ticket fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div><h6 class="text-muted mb-1">Eventos Ativos</h6>
+                        <h2 class="mb-0">@Model.EventosAtivos</h2></div>
+                    <i class="fa-solid fa-calendar fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div><h6 class="text-muted mb-1">Receita Total</h6>
+                        <h2 class="mb-0">@Model.ReceitaTotal.ToString("C2")</h2></div>
+                    <i class="fa-solid fa-dollar-sign fa-2x text-muted opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">Ingressos Vendidos por Evento</h5>
+        <canvas id="graficoEventos" height="100"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('graficoEventos').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.EventosLabels.Select(l => $"'{System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(l)}'")))],
+                datasets: [{
+                    label: 'Ingressos vendidos',
+                    data: [@string.Join(",", Model.EventosData)],
+                    backgroundColor: '#e94560',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    </script>
+}
