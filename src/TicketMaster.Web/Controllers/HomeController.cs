@@ -1,19 +1,18 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using TicketMaster.Application.Services;
-using TicketMaster.Web.Models;
+using TicketMaster.Application.Queries.ListarEventosAtivos;
 
 namespace TicketMaster.Web.Controllers;
 
 [Authorize]
 public class HomeController : Controller
 {
-    private readonly EventService _eventService;
+    private readonly IMediator _mediator;
 
-    public HomeController(EventService eventService)
+    public HomeController(IMediator mediator)
     {
-        _eventService = eventService;
+        _mediator = mediator;
     }
 
     //========================================================================================================================
@@ -21,7 +20,7 @@ public class HomeController : Controller
     //========================================================================================================================
     public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
     {
-        var eventos = await _eventService.ListarEventosAtivosAsync(cancellationToken);
+        var eventos = await _mediator.Send(new ListarEventosAtivosQuery(), cancellationToken);
         return View(eventos);
     }
 }

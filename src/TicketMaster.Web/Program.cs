@@ -7,8 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using MediatR;
+using TicketMaster.Application;
 using TicketMaster.Application.Interfaces;
-using TicketMaster.Application.Services;
 using TicketMaster.Domain.Entities;
 using TicketMaster.Infrastructure.Data;
 using TicketMaster.Infrastructure.Repositories;
@@ -91,8 +92,11 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 // Serviços de domínio
 builder.Services.AddHostedService<TicketReaperWorker>();
-builder.Services.AddScoped<TicketService>();
-builder.Services.AddScoped<EventService>();
+
+// MediatR + CQRS + FluentValidation
+builder.Services.AddApplication();
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssemblyContaining<Program>());
 
 //==============================================
 // BUILD
