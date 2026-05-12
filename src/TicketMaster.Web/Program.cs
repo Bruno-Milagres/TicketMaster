@@ -98,6 +98,7 @@ builder.Services.AddMassTransit(x =>
 // Repositórios
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 // Serviços de domínio
 builder.Services.AddHostedService<TicketReaperWorker>();
 
@@ -150,6 +151,14 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 app.MapHub<TicketHub>("/ticketHub");
+
+// ==============================================
+// ÁREA ADMIN
+// ==============================================
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Room}/{action=Index}/{id?}")
+    .WithStaticAssets();
 
 //==============================================
 // SEED DO BANCO DE DADOS

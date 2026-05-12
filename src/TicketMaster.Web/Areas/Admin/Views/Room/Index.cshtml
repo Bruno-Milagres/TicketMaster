@@ -1,0 +1,68 @@
+@model IEnumerable<TicketMaster.Domain.Entities.Room>
+@{
+    ViewData["Title"] = "Gerenciar Salas";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="fa-solid fa-couch me-2"></i>Salas</h1>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fa-solid fa-plus me-1"></i>Nova Sala
+    </a>
+</div>
+
+@if (TempData["Sucesso"] != null)
+{
+    <div class="alert alert-success">@TempData["Sucesso"]</div>
+}
+@if (TempData["Erro"] != null)
+{
+    <div class="alert alert-danger">@TempData["Erro"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">Nenhuma sala cadastrada.</div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var sala in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@sala.Name</h5>
+                        <p class="text-muted small mb-2">
+                            <i class="fa-regular fa-grid-2 me-1"></i>
+                            @sala.Layout.MaxColumns × @sala.Layout.MaxRows
+                            · @sala.Layout.Seats.Count assento(s)
+                        </p>
+                        <div class="seat-map-preview" style="display:grid;grid-template-columns:repeat(@sala.Layout.MaxColumns, 20px);gap:2px;opacity:0.7">
+                            @for (int y = 1; y <= sala.Layout.MaxRows; y++)
+                            {
+                                for (int x = 1; x <= sala.Layout.MaxColumns; x++)
+                                {
+                                    var ocupado = sala.Layout.Seats.Any(s => s.CoordX == x && s.CoordY == y);
+                                    <div style="width:18px;height:18px;border-radius:3px;background:@(ocupado ? "#1a1a1a" : "#e4e4e0")"></div>
+                                }
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@sala.Id" class="btn btn-sm btn-outline-primary">
+                            <i class="fa-solid fa-pen me-1"></i>Editar
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@sala.Id" method="post"
+                              onsubmit="return confirm('Excluir esta sala?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fa-solid fa-trash me-1"></i>Excluir
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
