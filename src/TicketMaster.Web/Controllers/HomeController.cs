@@ -16,6 +16,9 @@ public class HomeController : Controller
         _eventService = eventService;
     }
 
+    //========================================================================================================================
+    // Redireciona para a lista de eventos ativos
+    //========================================================================================================================
     public async Task<IActionResult> Index()
     {
         var eventos = await _eventService.ListarEventosAtivosAsync();

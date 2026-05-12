@@ -14,6 +14,9 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Event> Events { get; set; }
     public DbSet<Room> Rooms { get; set; }
 
+    //=========================================================
+    // Cria as tabelas baseadas nas entidades e configurações
+    //=========================================================
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

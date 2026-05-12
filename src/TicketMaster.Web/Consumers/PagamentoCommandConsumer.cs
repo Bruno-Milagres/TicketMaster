@@ -6,10 +6,10 @@ using TicketMaster.Web.Hubs;
 
 namespace TicketMaster.Web.Consumers;
 
-/// <summary>
-/// Consumidor MassTransit responsável por processar comandos de pagamento recebidos do RabbitMQ.
-/// Confirma o pagamento no domínio e notifica os clientes conectados via SignalR.
-/// </summary>
+//========================================================================================================
+// Consumidor MassTransit responsável por processar comandos de pagamento recebidos do RabbitMQ.
+// Confirma o pagamento no domínio e notifica os clientes conectados via SignalR.
+//========================================================================================================
 public class PagamentoCommandConsumer : IConsumer<PagamentoCommand>
 {
     private readonly TicketService _ticketService;
@@ -26,11 +26,11 @@ public class PagamentoCommandConsumer : IConsumer<PagamentoCommand>
         _logger = logger;
     }
 
-    /// <summary>
-    /// Processa um <see cref="PagamentoCommand"/> da fila:
-    /// confirma o pagamento e, em caso de sucesso, notifica apenas os clientes
-    /// do grupo do evento correspondente via SignalR.
-    /// </summary>
+    //========================================================================================================
+    // Processa um <see cref="PagamentoCommand"/> da fila:
+    // confirma o pagamento e, em caso de sucesso, notifica apenas os clientes
+    // do grupo do evento correspondente via SignalR.
+    //========================================================================================================
     public async Task Consume(ConsumeContext<PagamentoCommand> context)
     {
         var comando = context.Message;

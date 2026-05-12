@@ -9,6 +9,7 @@ namespace TicketMaster.Application.Interfaces
 {
     public interface IEventRepository
     {
+        //Lista todos os eventos ativos
         Task<IEnumerable<Event>> ListarEventosAtivosAsync();
     }
 }

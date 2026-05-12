@@ -173,7 +173,7 @@ public class TicketServiceTests
             new Ticket(_eventId, "A1"),
             new Ticket(_eventId, "A2"),
         };
-        _repositoryMock.Setup(r => r.ObterTodosAsync()).ReturnsAsync(tickets);
+        _repositoryMock.Setup(r => r.ObterPorEventoAsync(_eventId)).ReturnsAsync(tickets);
 
         // Act
         var resultado = await _service.ObterPorEventoAsync(_eventId);

@@ -19,10 +19,10 @@ public class TicketService
         return await _ticketRepository.ObterPorEventoAsync(eventId);
     }
 
-    /// <summary>
-    /// Reserva um assento para o usuário informado.
-    /// Retorna falha se o assento não existir, já estiver ocupado ou houver conflito de concorrência.
-    /// </summary>
+    //============================================================================================================================
+    // Reserva um assento para o usuário informado.
+    // Retorna falha se o assento não existir, já estiver ocupado ou houver conflito de concorrência.
+    //============================================================================================================================
     public async Task<Result> ReservarAssentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
     {
         var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
@@ -46,10 +46,10 @@ public class TicketService
         }
     }
 
-    /// <summary>
-    /// Libera todos os ingressos com reservas expiradas, devolvendo-os ao estoque.
-    /// Chamado periodicamente pelo <see cref="Web.Workers.TicketReaperWorker"/>.
-    /// </summary>
+    //============================================================================================================================
+    // Libera todos os ingressos com reservas expiradas, devolvendo-os ao estoque.
+    // Chamado periodicamente pelo <see cref="Web.Workers.TicketReaperWorker"/>.
+    //============================================================================================================================
     public async Task<List<string>> ExpirarReservasVencidasAsync()
     {
         var ingressosVencidos = await _ticketRepository.ObterReservasVencidasAsync();
@@ -70,9 +70,9 @@ public class TicketService
         return assentosLiberados;
     }
 
-    /// <summary>
-    /// Confirma o pagamento de um ingresso reservado, associando-o ao usuário e marcando-o como vendido.
-    /// </summary>
+    //============================================================================================================================
+    // Confirma o pagamento de um ingresso reservado, associando-o ao usuário e marcando-o como vendido.
+    //============================================================================================================================
     public async Task<Result> ConfirmarPagamentoAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
     {
         var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);
@@ -92,9 +92,9 @@ public class TicketService
         }
     }
 
-    /// <summary>
-    /// Cancela a reserva de um ingresso pelo usuário.
-    /// </summary>
+    //============================================================================================================================
+    // Cancela a reserva de um ingresso pelo usuário.
+    //============================================================================================================================
     public async Task<Result> CancelarReservaAsync(string assentoCodigo, Guid usuarioId, Guid eventId)
     {
         var ticket = await _ticketRepository.ObterPorAssentoAsync(assentoCodigo, eventId);

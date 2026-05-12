@@ -12,6 +12,9 @@ public class EventService
         _eventRepository = eventRepository;
     }
 
+    //=======================================================================================================
+    // Retorna a lista de eventos ativos ordenados por data
+    //=======================================================================================================
     public async Task<IEnumerable<Event>> ListarEventosAtivosAsync()
     {
         return await _eventRepository.ListarEventosAtivosAsync();
