@@ -23,6 +23,10 @@ public class TicketReaperWorker : BackgroundService
         _hubContext = hubContext;
     }
 
+    //========================================================================================================================================================
+    // Executa o loop principal do serviço, verificando periodicamente por reservas expiradas e liberando os ingressos correspondentes.
+    // Para cada assento liberado, envia uma notificação via SignalR para atualizar a interface dos clientes conectados.
+    //========================================================================================================================================================
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Reaper de ingressos iniciado.");

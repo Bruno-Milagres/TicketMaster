@@ -26,6 +26,9 @@ public class TicketController : Controller
         _context = context;
     }
 
+    //=====================================================
+    // Redireciona para a Home 
+    //=====================================================
     [HttpGet]
     public async Task<IActionResult> Index(Guid eventId)
     {
@@ -50,6 +53,13 @@ public class TicketController : Controller
         return View(tickets);
     }
 
+    //====================================================================================================================
+    // GET e POST para Reservar, Pagar, CancelarReserva e Checkout
+    // * Reservar: GET para validar o eventId e redirecionar, POST para processar a reserva
+    // * Pagar: GET para validar o eventId e redirecionar, POST para processar o pagamento
+    // * CancelarReserva: POST para processar o cancelamento da reserva
+    // * Checkout: GET para validar o eventId e redirecionar, POST para processar o checkout (se necessário)
+    //====================================================================================================================
     [HttpGet]
     public IActionResult Reservar(Guid eventId)
     {

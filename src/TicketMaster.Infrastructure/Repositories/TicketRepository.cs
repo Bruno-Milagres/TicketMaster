@@ -15,12 +15,20 @@ public class TicketRepository : ITicketRepository
         _context = context;
     }
 
+    //=======================================================================================================
+    // Retorna o ingresso pelo código do assento e ID do evento.
+    // Retorna null se não encontrar o ingresso.
+    //=======================================================================================================
     public async Task<Ticket?> ObterPorAssentoAsync(string assentoCodigo, Guid eventId)
     {
         return await _context.Tickets
             .FirstOrDefaultAsync(t => t.AssentoCodigo == assentoCodigo && t.EventId == eventId);
     }
 
+    //=======================================================================================================
+    // Retorna o ingresso pelo ID.
+    // Retorna null se não encontrar o ingresso.
+    //=======================================================================================================
     public async Task<IEnumerable<Ticket>> ObterPorEventoAsync(Guid eventId)
     {
         return await _context.Tickets
@@ -28,11 +36,17 @@ public class TicketRepository : ITicketRepository
             .ToListAsync();
     }
 
+    //=======================================================================================================
+    // Retorna todos os ingressos.
+    //=======================================================================================================
     public async Task<IEnumerable<Ticket>> ObterTodosAsync()
     {
         return await _context.Tickets.ToListAsync();
     }
 
+    //=======================================================================================================
+    // Retorna os ingressos que estão reservados e cuja reserva já expirou.
+    //=======================================================================================================
     public async Task<IEnumerable<Ticket>> ObterReservasVencidasAsync()
     {
         return await _context.Tickets
@@ -40,10 +54,10 @@ public class TicketRepository : ITicketRepository
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Persiste as alterações do ingresso.
-    /// Lança <see cref="ConcurrencyException"/> se outro processo alterou o registro simultaneamente.
-    /// </summary>
+    //=======================================================================================================
+    // Persiste as alterações do ingresso.
+    // Lança <see cref="ConcurrencyException"/> se outro processo alterou o registro simultaneamente.       
+    //=======================================================================================================
     public async Task AtualizarAsync(Ticket ticket)
     {
         try

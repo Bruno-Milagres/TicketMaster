@@ -19,6 +19,9 @@ public sealed class Ticket
     public DateTime? DataExpiraReserva { get; private set; }
     public Guid Versao { get; private set; }
 
+    //============================================================================
+    // Construtor privado exigido pelo EF Core para materialização via reflexão.
+    //============================================================================
     public Ticket(Guid eventId, string assentoCodigo)
     {
         Id = Guid.NewGuid();
@@ -28,6 +31,10 @@ public sealed class Ticket
         Versao = Guid.NewGuid();
     }
 
+    //============================================================================
+    // Cria uma reservar para o ingresso, associando-o a um usuário e
+    // definindo um prazo de expiração para a reserva.
+    //============================================================================
     public Result Reservar(Guid usuarioId)
     {
         if (Status != TicketStatus.Disponivel)
@@ -41,6 +48,9 @@ public sealed class Ticket
         return Result.Success();
     }
 
+    //============================================================================
+    // Confirma o pagamento do ingresso reservado, alterando seu status para vendido.
+    //============================================================================
     public Result ConfirmarPagamento(Guid usuarioId)
     {
         if (Status != TicketStatus.Reservado)
@@ -56,6 +66,9 @@ public sealed class Ticket
         return Result.Success();
     }
 
+    //============================================================================
+    // Expira a reserva de um ingresso, tornando-o disponível novamente para outros usuários.
+    //============================================================================
     public Result ExpirarReserva()
     {
         if (Status != TicketStatus.Reservado)
@@ -72,6 +85,9 @@ public sealed class Ticket
         return Result.Success();
     }
 
+    //============================================================================
+    // Permite que o usuário cancele sua própria reserva, tornando o ingresso disponível novamente.
+    //============================================================================
     public Result CancelarReservaPeloUsuario(Guid usuarioId)
     {
         if (Status != TicketStatus.Reservado)

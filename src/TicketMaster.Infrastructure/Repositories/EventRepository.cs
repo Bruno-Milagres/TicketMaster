@@ -14,6 +14,7 @@ public class EventRepository : IEventRepository
         _context = context;
     }
 
+    // Retorna os eventos ordenados por data
     public async Task<IEnumerable<Event>> ListarEventosAtivosAsync()
     {
         return await _context.Events
