@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Finalizar Compra";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-4"><i class="fa-solid fa-credit-card me-2"></i>Finalizar Compra</h1>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <p class="mb-0">@error.ErrorMessage</p>
+                        }
+                    </div>
+                }
+
+                <form method="post" data-loading>
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="clienteNome" class="form-label">Nome completo</label>
+                            <input type="text" name="clienteNome" class="form-control" required />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="clienteEmail" class="form-label">E-mail</label>
+                            <input type="email" name="clienteEmail" class="form-control" required />
+                        </div>
+                    </div>
+                    <input type="hidden" name="itensJson" id="itensJson" />
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fa-solid fa-check-circle me-1"></i>Confirmar Pedido
+                        </button>
+                        <a href="/Carrinho" class="btn btn-outline-secondary">Voltar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var itens = JSON.parse(localStorage.getItem('tm-carrinho') || '[]');
+            document.getElementById('itensJson').value = JSON.stringify(itens);
+        });
+    </script>
+}

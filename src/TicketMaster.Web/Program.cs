@@ -45,6 +45,7 @@ builder.Services.AddOpenTelemetry()
 // SERVIÇOS MVC
 //==============================================
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 
 //==============================================
 // SIGNALR
@@ -134,13 +135,13 @@ app.Use(async (context, next) =>
     }
     await next();
 });
-app.MapControllers();
 app.UseHttpsRedirection();
 app.UseRouting();
+app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapStaticAssets();
-app.MapRazorPages();
+app.MapRazorPages();  // Necessário para Identity (Areas/Identity/Pages)
 
 //==============================================
 // ROTAS
