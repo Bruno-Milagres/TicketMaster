@@ -39,6 +39,12 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
             .Property(t => t.Versao)
             .IsConcurrencyToken();
 
+        builder.Entity<Ticket>()
+            .HasOne<CamaroteGroup>()
+            .WithMany(g => g.Assentos)
+            .HasForeignKey(t => t.CamaroteGroupId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.Entity<TipoIngresso>()
             .Property(t => t.Preco)
             .HasPrecision(18, 2);
@@ -47,6 +53,15 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
             .HasPrecision(18, 2);
         builder.Entity<ItemPedido>()
             .Property(i => i.PrecoUnitario)
+            .HasPrecision(18, 2);
+        builder.Entity<EventSectorPrice>()
+            .Property(e => e.Price)
+            .HasPrecision(18, 2);
+        builder.Entity<PrecoHistorico>()
+            .Property(p => p.PrecoAnterior)
+            .HasPrecision(18, 2);
+        builder.Entity<PrecoHistorico>()
+            .Property(p => p.PrecoNovo)
             .HasPrecision(18, 2);
     }
 }

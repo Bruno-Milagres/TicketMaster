@@ -2,7 +2,7 @@ namespace TicketMaster.Domain.Entities;
 
 public class CamaroteGroup
 {
-    public Guid Id { get; private set; }
+    public string Id { get; private set; }
     public Guid EventId { get; private set; }
     public string Nome { get; private set; }
 
@@ -13,9 +13,9 @@ public class CamaroteGroup
 
     private CamaroteGroup() { Nome = string.Empty; }
 
-    public CamaroteGroup(Guid eventId, string nome)
+    public CamaroteGroup(Guid eventId, string nome, string id)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         EventId = eventId;
         Nome = nome;
     }
