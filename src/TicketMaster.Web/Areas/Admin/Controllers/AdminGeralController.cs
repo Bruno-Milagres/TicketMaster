@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace TicketMaster.Web.Areas.Admin.Controllers;
 
@@ -20,22 +19,30 @@ public class AdminGeralController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var adminRoleIds = new[] { "AdminGeral", "Admin" }
-            .Select(r => _roleManager.FindByNameAsync(r).Result?.Id)
-            .Where(id => id != null)
-            .ToList();
+        var adminGerals = await _userManager.GetUsersInRoleAsync("AdminGeral");
+        var admins = await _userManager.GetUsersInRoleAsync("Admin");
 
-        var adminUsers = await _userManager.Users
-            .Where(u => _userManager.GetRolesAsync(u).Result.Any(r => r == "AdminGeral" || r == "Admin"))
+        var adminUsers = adminGerals
+            .Concat(admins)
+            .DistinctBy(u => u.Id)
             .Select(u => new AdminUserView
             {
                 Id = u.Id,
                 Email = u.Email ?? "",
-                Roles = string.Join(", ", _userManager.GetRolesAsync(u).Result)
+                Roles = string.Join(", ", GetRolesForUser(u, adminGerals, admins))
             })
-            .ToListAsync();
+            .OrderBy(u => u.Email)
+            .ToList();
 
         return View(adminUsers);
+    }
+
+    private static List<string> GetRolesForUser(IdentityUser user, IList<IdentityUser> adminGerals, IList<IdentityUser> admins)
+    {
+        var roles = new List<string>();
+        if (adminGerals.Any(a => a.Id == user.Id)) roles.Add("AdminGeral");
+        if (admins.Any(a => a.Id == user.Id)) roles.Add("Admin");
+        return roles;
     }
 
     [HttpPost]
@@ -45,7 +52,6 @@ public class AdminGeralController : Controller
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null) return NotFound();
 
-        // Não permite remover AdminGeral do último AdminGeral
         if (role == "AdminGeral")
         {
             var adminGerals = await _userManager.GetUsersInRoleAsync("AdminGeral");
