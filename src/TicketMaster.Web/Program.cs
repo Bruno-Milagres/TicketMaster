@@ -53,6 +53,35 @@ builder.Services.AddOpenTelemetry()
     });
 
 //==============================================
+// SWAGGER/OPENAPI
+//==============================================
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(opts =>
+{
+    opts.SwaggerDoc("v1", new() { Title = "TicketMaster API", Version = "v1" });
+    opts.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+    opts.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+//==============================================
 // SERVIÇOS MVC
 //==============================================
 builder.Services.AddControllersWithViews();
@@ -212,6 +241,12 @@ app.Use(async (context, next) =>
     }
     await next();
 });
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TicketMaster v1"));
+}
+
 app.UseHttpsRedirection();
 app.UseResponseCompression();
 app.UseResponseCaching();
@@ -246,6 +281,10 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        await context.Database.MigrateAsync(); // Aplica migrations pendentes
+    }
     await DataSeeder.SeedAsync(context);
 }
 
