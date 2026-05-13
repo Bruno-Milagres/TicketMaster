@@ -1,50 +1,64 @@
 @model IEnumerable<TicketMaster.Domain.Entities.Ticket>
 @using System.Text.Json
+@using System.Text.Json.Serialization
 @using System.Linq
+@using TicketMaster.Domain.Entities
 
 @{
     ViewData["Title"] = "Mapa de Assentos";
-    var roomLayout = ViewBag.RoomLayout as TicketMaster.Domain.Entities.Room.RoomLayout;
+    var theaterSvg   = ViewBag.TheaterSvg as string ?? string.Empty;
+    var sectorPrices = ViewBag.SectorPrices as List<EventSectorPrice> ?? new List<EventSectorPrice>();
+
+    var camelCase = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    var sectorOrder = new[]
+    {
+        Room.Sectors.PlateiaFrente,
+        Room.Sectors.PlateiaCentro,
+        Room.Sectors.PlateiaFundo,
+        Room.Sectors.Frisa,
+        Room.Sectors.Camarote,
+        Room.Sectors.Balcao,
+        Room.Sectors.Acessibilidade,
+    };
+
+    var sectorLabels = new Dictionary<string, string>
+    {
+        [Room.Sectors.PlateiaFrente]  = "Plateia Frente",
+        [Room.Sectors.PlateiaCentro]  = "Plateia Centro",
+        [Room.Sectors.PlateiaFundo]   = "Plateia Fundo",
+        [Room.Sectors.Frisa]          = "Frisa (VIP)",
+        [Room.Sectors.Camarote]       = "Camarote (VIP)",
+        [Room.Sectors.Balcao]         = "Balcão",
+        [Room.Sectors.Acessibilidade] = "Acessibilidade",
+    };
+
+    var sectorColors = new Dictionary<string, string>
+    {
+        [Room.Sectors.PlateiaFrente]  = "#F5A623",
+        [Room.Sectors.PlateiaCentro]  = "#10B981",
+        [Room.Sectors.PlateiaFundo]   = "#3B82F6",
+        [Room.Sectors.Frisa]          = "#7C3AED",
+        [Room.Sectors.Camarote]       = "#EC4899",
+        [Room.Sectors.Balcao]         = "#64748B",
+        [Room.Sectors.Acessibilidade] = "#06B6D4",
+    };
 }
 
 <div class="tm-seat-map-page">
-    @* Header *@
+
     <div class="tm-seat-map-header">
         <div class="container">
             <span class="tm-badge tm-badge-violet mb-3">
                 <i class="fa-regular fa-map me-1"></i>Mapa de Assentos
             </span>
             <h1>@ViewBag.EventName</h1>
-            <div class="event-name">
-                <i class="fa-regular fa-calendar me-1"></i>Selecione seu assento
-            </div>
+            <p class="event-name"><i class="fa-regular fa-calendar me-1"></i>Selecione seu assento</p>
         </div>
     </div>
 
-    @* Palco *@
-    <div class="tm-stage">
-        <div class="tm-stage-shape"></div>
-        <div class="tm-stage-label">Palco</div>
-    </div>
+    <div class="container-fluid px-3">
 
-    @* Legenda *@
-    <div class="tm-legend">
-        <span class="tm-legend-item">
-            <span class="tm-legend-dot" style="background:var(--color-green);"></span>Disponível
-        </span>
-        <span class="tm-legend-item">
-            <span class="tm-legend-dot" style="background:var(--color-accent);"></span>Reservado
-        </span>
-        <span class="tm-legend-item">
-            <span class="tm-legend-dot" style="background:var(--color-danger);opacity:0.5;"></span>Vendido
-        </span>
-        <span class="tm-legend-item">
-            <span class="tm-legend-dot" style="background:#fff;"></span>Minha Reserva
-        </span>
-    </div>
-
-    @* Grid de Assentos *@
-    <div class="container">
         @if (Model == null || !Model.Any())
         {
             <div class="tm-alert tm-alert-warning d-flex align-items-center gap-2">
@@ -54,112 +68,289 @@
         }
         else
         {
-            <div class="tm-seat-grid-wrapper">
-                <div id="seat-map" class="tm-seat-grid"></div>
+            <!-- Legenda de status -->
+            <div class="tm-legend mb-2">
+                <span class="tm-legend-item">
+                    <span class="tm-legend-dot" style="background:#475569;"></span>Reservado
+                </span>
+                <span class="tm-legend-item">
+                    <span class="tm-legend-dot" style="background:#991B1B;opacity:.55;"></span>Vendido
+                </span>
+                <span class="tm-legend-item">
+                    <span class="tm-legend-dot" style="background:#fff;border:2px solid #8B2252;"></span>Minha Reserva
+                </span>
+                <span class="tm-legend-item" style="font-size:.75rem;opacity:.6;">
+                    <i class="fa-solid fa-circle-info me-1"></i>Cor do assento = setor/preço
+                </span>
+            </div>
+
+            <!-- Legenda de setores e preços -->
+            <div class="tm-sector-legend mb-3">
+                @foreach (var sector in sectorOrder)
+                {
+                    var color = sectorColors.GetValueOrDefault(sector, "#888");
+                    var label = sectorLabels.GetValueOrDefault(sector, sector);
+                    var prices = sectorPrices.Where(p => p.Sector == sector).OrderBy(p => p.Category).ToList();
+                    if (!prices.Any()) { continue; }
+                    <div class="tm-sector-legend-item">
+                        <span class="tm-sector-dot" style="background:@color;"></span>
+                        <span class="tm-sector-name">@label</span>
+                        @foreach (var p in prices)
+                        {
+                            <span class="tm-sector-price">
+                                @(p.Category == TicketMaster.Domain.Enums.TicketCategory.Meia ? "Meia" : "Inteira"):
+                                @(p.Price == 0 ? "Grátis" : string.Format("R$ {0:N2}", p.Price))
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- SVG interativo do teatro -->
+            <div id="theater-svg-container" class="tm-theater-svg-wrapper">
+                @Html.Raw(theaterSvg)
             </div>
         }
-
-        @* Info de status *@
-        <div class="d-flex flex-wrap gap-2 justify-content-center mt-3 mb-4">
-            <span class="tm-badge tm-badge-success"><i class="fa-regular fa-circle me-1"></i>Disponível</span>
-            <span class="tm-badge tm-badge-primary"><i class="fa-regular fa-clock me-1"></i>Reservado</span>
-            <span class="tm-badge tm-badge-danger"><i class="fa-solid fa-xmark me-1"></i>Vendido</span>
-        </div>
     </div>
 
-    @* Painel de seleção (aparece quando um assento é clicado) *@
+    <!-- Painel de seleção -->
     <div class="tm-selection-panel" id="selection-panel">
         <div class="tm-selection-info">
-            <span class="tm-selection-seat" id="selected-seat"></span>
-            <span class="tm-selection-price">Selecione um assento disponível</span>
+            <span class="tm-selection-seat" id="selected-seat">selecione um assento</span>
+            <span id="selected-sector" style="font-size:.8rem;opacity:.7;display:block;"></span>
+            <span class="tm-selection-price" id="selected-price"></span>
         </div>
-        <button class="tm-btn tm-btn-primary" id="btn-reservar" onclick="reservarAssentoSelecionado()">
-            <i class="fa-regular fa-circle-check me-1"></i>Reservar
-        </button>
+        <div class="d-flex gap-2 align-items-center">
+            <label class="tm-form-label mb-0" for="ticket-category" style="white-space:nowrap;">Tipo:</label>
+            <select class="tm-form-control" id="ticket-category" style="min-width:130px;">
+                <option value="0">Inteira</option>
+                <option value="1">Meia-entrada</option>
+            </select>
+            <button class="tm-btn tm-btn-primary" id="btn-reservar" onclick="reservarAssentoSelecionado()">
+                <i class="fa-regular fa-circle-check me-1"></i>Reservar
+            </button>
+        </div>
     </div>
+
 </div>
 
-<environment include="Development">
-    <script src="~/js/seat-map.js" asp-append-version="true"></script>
-</environment>
-<environment exclude="Development">
-    <script src="~/js/seat-map.min.js" asp-append-version="true"></script>
-</environment>
-
 @section Scripts {
-    <script>
-        var eventId = '@ViewBag.EventId';
-        var currentUserId = '@ViewBag.CurrentUserId';
-        var roomLayout = @Html.Raw(roomLayout != null ? JsonSerializer.Serialize(roomLayout) : "null");
-        var tickets = @Html.Raw(JsonSerializer.Serialize(Model?.Select(t => new {
-            t.Id, t.AssentoCodigo, t.EventId, t.Status, t.UsuarioId, t.DataExpiraReserva
-        })));
-        var selectedSeat = null;
+<script>
+(function () {
+    var eventId       = '@ViewBag.EventId';
+    var currentUserId = '@ViewBag.CurrentUserId';
+    var tickets       = @Html.Raw(JsonSerializer.Serialize(Model != null ? Model.Select(t => new {
+        t.Id, t.AssentoCodigo, t.EventId, t.Status, t.UsuarioId, t.DataExpiraReserva
+    }) : Enumerable.Empty<object>(), camelCase));
+    var sectorPricesData = @Html.Raw(JsonSerializer.Serialize(sectorPrices.Select(p => new {
+        p.Sector, Category = (int)p.Category, p.Price
+    }), camelCase));
 
-        document.addEventListener('DOMContentLoaded', function () {
-            renderSeatMap();
+    var selectedSeatCode = null;
+
+    // ---------------------------------------------------------------
+    // Mapeia código do assento → setor de domínio
+    // ---------------------------------------------------------------
+    function getSectorFromCode(code) {
+        if (!code) return 'PlateiaCentro';
+        if (code.startsWith('FRE-') || code.startsWith('FRD-')) return 'Frisa';
+        if (code.startsWith('CAME-') || code.startsWith('CAMD-')) return 'Camarote';
+        if (code.startsWith('BAL-')) return 'Balcao';
+        if (code.startsWith('AC-')) return 'Acessibilidade';
+        var c = code.charCodeAt(0);
+        if (c >= 65 && c <= 69) return 'PlateiaFrente';   // A–E
+        if (c >= 70 && c <= 80) return 'PlateiaCentro';   // F–P
+        if (c >= 81 && c <= 86) return 'PlateiaFundo';    // Q–V
+        return 'PlateiaCentro';
+    }
+
+    var SECTOR_LABELS = {
+        'PlateiaFrente':  'Plateia Frente',
+        'PlateiaCentro':  'Plateia Centro',
+        'PlateiaFundo':   'Plateia Fundo',
+        'Frisa':          'Frisa (VIP)',
+        'Camarote':       'Camarote (VIP)',
+        'Balcao':         'Balcão',
+        'Acessibilidade': 'Acessibilidade'
+    };
+
+    // Cores de setor — mesmas usadas na legenda de preços do Razor
+    var SECTOR_COLORS = {
+        'PlateiaFrente':  '#F5A623',
+        'PlateiaCentro':  '#10B981',
+        'PlateiaFundo':   '#3B82F6',
+        'Frisa':          '#7C3AED',
+        'Camarote':       '#EC4899',
+        'Balcao':         '#64748B',
+        'Acessibilidade': '#06B6D4'
+    };
+
+    // ---------------------------------------------------------------
+    // Obtém preço para assento + categoria
+    // ---------------------------------------------------------------
+    function getPriceForSeat(seatCode, category) {
+        var sector = getSectorFromCode(seatCode);
+        var cat    = parseInt(category);
+        var match  = sectorPricesData.find(function (p) { return p.sector === sector && p.category === cat; });
+        if (!match) match = sectorPricesData.find(function (p) { return p.sector === sector && p.category === 0; });
+        return match ? match.price : null;
+    }
+
+    // ---------------------------------------------------------------
+    // Verifica se o setor aceita meia-entrada
+    // ---------------------------------------------------------------
+    function sectorHasMeia(sector) {
+        return sectorPricesData.some(function (p) { return p.sector === sector && p.category === 1; });
+    }
+
+    // ---------------------------------------------------------------
+    // Aplica estado visual ao rect do SVG
+    // ---------------------------------------------------------------
+    function applySvgState(el, state, sector) {
+        el.classList.remove('svg-seat-disponivel', 'svg-seat-reservado', 'svg-seat-vendido', 'svg-seat-meu', 'svg-seat-selecionado');
+        el.classList.add('svg-seat-' + state);
+        // Para disponível injeta a cor do setor; para outros estados remove o fill inline
+        if (state === 'disponivel' && sector) {
+            var color = SECTOR_COLORS[sector] || '#64748B';
+            el.style.fill = color;
+            el.style.stroke = color;
+        } else if (state !== 'disponivel') {
+            el.style.fill = '';
+            el.style.stroke = '';
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Inicializa o SVG interativo com estado dos tickets
+    // ---------------------------------------------------------------
+    function initSeatMap() {
+        var svgEl = document.querySelector('#theater-svg-container svg');
+        if (!svgEl) return;
+
+        // Torna o SVG responsivo
+        svgEl.removeAttribute('width');
+        svgEl.removeAttribute('height');
+        svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+        // Monta mapa de tickets por código
+        var ticketMap = {};
+        tickets.forEach(function (t) { ticketMap[t.assentoCodigo] = t; });
+
+        // Itera todos os grupos de assento do SVG
+        var seatGroups = svgEl.querySelectorAll('.seat-group');
+        seatGroups.forEach(function (group) {
+            var rect = group.querySelector('rect[id]');
+            if (!rect) return;
+
+            var code   = rect.id;
+            var ticket = ticketMap[code];
+            if (!ticket) return; // assento sem ingresso configurado — mantém visual original
+
+            var sector = getSectorFromCode(code);
+            var isMine = ticket.usuarioId === currentUserId && ticket.status === 1;
+
+            if (ticket.status === 0) {
+                // Disponível — cor do setor
+                applySvgState(rect, 'disponivel', sector);
+                group.style.cursor = 'pointer';
+                group.addEventListener('click', (function (t, c, s) {
+                    return function () { selectSeat(t, c, s); };
+                }(ticket, code, sector)));
+            } else if (ticket.status === 1) {
+                applySvgState(rect, isMine ? 'meu' : 'reservado', sector);
+                if (isMine) {
+                    group.style.cursor = 'pointer';
+                    group.addEventListener('click', (function (t, c, s) {
+                        return function () { selectSeat(t, c, s); };
+                    }(ticket, code, sector)));
+                }
+            } else {
+                applySvgState(rect, 'vendido', sector);
+            }
         });
+    }
 
-        function renderSeatMap() {
-            var grid = document.getElementById('seat-map');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            var seats = tickets || [];
-            var cols = roomLayout ? roomLayout.maxColumns || 8 : 8;
-
-            grid.style.gridTemplateColumns = 'repeat(' + cols + ', 36px)';
-
-            seats.forEach(function(ticket) {
-                var btn = document.createElement('button');
-                btn.className = 'tm-seat-btn';
-                btn.dataset.codigo = ticket.assentoCodigo;
-                btn.dataset.id = ticket.id;
-                btn.textContent = ticket.assentoCodigo;
-
-                var isMine = ticket.usuarioId === currentUserId && ticket.status === 1;
-
-                if (ticket.status === 0) {
-                    btn.className += ' seat-disponivel';
-                } else if (ticket.status === 1) {
-                    btn.className += isMine ? ' seat-selecionado' : ' seat-reservado';
-                    if (!isMine) btn.disabled = true;
-                } else {
-                    btn.className += ' seat-vendido';
-                    btn.disabled = true;
+    // ---------------------------------------------------------------
+    // Seleciona assento no mapa
+    // ---------------------------------------------------------------
+    function selectSeat(ticket, code, sector) {
+        // Desmarca seleção anterior
+        if (selectedSeatCode) {
+            var prev = document.getElementById(selectedSeatCode);
+            if (prev) {
+                var prevTicket = tickets.find(function (t) { return t.assentoCodigo === selectedSeatCode; });
+                if (prevTicket) {
+                    var prevSector = getSectorFromCode(selectedSeatCode);
+                    var mine = prevTicket.usuarioId === currentUserId && prevTicket.status === 1;
+                    applySvgState(prev, mine ? 'meu' : 'disponivel', prevSector);
                 }
-
-                if (ticket.status === 0) {
-                    btn.addEventListener('click', function() {
-                        selectSeat(ticket);
-                    });
-                }
-
-                grid.appendChild(btn);
-            });
+            }
         }
 
-        function selectSeat(ticket) {
-            // Remove seleção anterior
-            document.querySelectorAll('.seat-selecionado').forEach(function(el) {
-                el.className = 'tm-seat-btn seat-disponivel';
-            });
+        selectedSeatCode = code;
+        var rect = document.getElementById(code);
+        if (rect) applySvgState(rect, 'selecionado', sector);
 
-            selectedSeat = ticket;
-            var btn = document.querySelector('[data-codigo="' + ticket.assentoCodigo + '"]');
-            if (btn) btn.className = 'tm-seat-btn seat-selecionado';
+        document.getElementById('selected-seat').textContent    = 'Assento ' + code;
+        document.getElementById('selected-sector').textContent  = SECTOR_LABELS[sector] || sector;
 
-            document.getElementById('selected-seat').textContent = 'Assento ' + ticket.assentoCodigo;
-            document.getElementById('selection-panel').classList.add('active');
+        // Mostra/oculta opção de meia-entrada
+        var catSelect = document.getElementById('ticket-category');
+        var meiaOpt   = catSelect.querySelector('option[value="1"]');
+        if (meiaOpt) meiaOpt.disabled = !sectorHasMeia(sector);
+        if (!sectorHasMeia(sector)) catSelect.value = '0';
+
+        updatePriceDisplay();
+        document.getElementById('selection-panel').classList.add('active');
+    }
+
+    function updatePriceDisplay() {
+        if (!selectedSeatCode) return;
+        var cat     = document.getElementById('ticket-category').value;
+        var price   = getPriceForSeat(selectedSeatCode, cat);
+        var priceEl = document.getElementById('selected-price');
+        if (price === null) {
+            priceEl.textContent = 'Categoria indisponível neste setor';
+            document.getElementById('btn-reservar').disabled = true;
+        } else {
+            priceEl.textContent = price === 0 ? 'Gratuito' : 'R$ ' + price.toFixed(2).replace('.', ',');
+            document.getElementById('btn-reservar').disabled = false;
         }
+    }
 
-        function reservarAssentoSelecionado() {
-            if (!selectedSeat) return;
-            var form = document.createElement('form');
-            form.method = 'post';
-            form.action = '/Ticket/Reservar?assentoCodigo=' + selectedSeat.assentoCodigo + '&eventId=' + eventId;
-            document.body.appendChild(form);
-            form.submit();
+    function reservarAssentoSelecionado() {
+        if (!selectedSeatCode) return;
+        var category = document.getElementById('ticket-category').value;
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/Ticket/Reservar'
+                    + '?assentoCodigo=' + encodeURIComponent(selectedSeatCode)
+                    + '&eventId='       + encodeURIComponent(eventId)
+                    + '&category='      + encodeURIComponent(category);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    document.addEventListener('DOMContentLoaded', initSeatMap);
+    document.getElementById('ticket-category').addEventListener('change', updatePriceDisplay);
+
+    // ---------------------------------------------------------------
+    // SignalR callback — atualiza estado de assento em tempo real
+    // ---------------------------------------------------------------
+    window.applySeatStatus = function (seatId, status) {
+        var rect = document.getElementById(seatId);
+        if (!rect) return;
+        var isMine = false;
+        var t = tickets.find(function (x) { return x.assentoCodigo === seatId; });
+        if (t) {
+            t.status = status;
+            isMine = t.usuarioId === currentUserId && status === 1;
         }
-    </script>
+        var sector = getSectorFromCode(seatId);
+        if (status === 0)      applySvgState(rect, 'disponivel', sector);
+        else if (status === 1) applySvgState(rect, isMine ? 'meu' : 'reservado', sector);
+        else                   applySvgState(rect, 'vendido', sector);
+    };
+}());
+</script>
 }

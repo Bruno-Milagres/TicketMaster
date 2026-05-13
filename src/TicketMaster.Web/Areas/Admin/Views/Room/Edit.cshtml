@@ -5,56 +5,64 @@
     var salaId = Context.Request.RouteValues["id"];
 }
 
-<h1 class="h3 mb-4"><i class="fa-solid fa-pen me-2"></i>Editar Sala</h1>
+<div class="container tm-page">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a asp-action="Index" class="tm-btn tm-btn-secondary tm-btn-sm">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h1 class="tm-section-title mb-0">
+            <i class="fa-solid fa-pen me-2" style="color:var(--accent);"></i>Editar Sala
+        </h1>
+    </div>
 
-<form asp-action="Edit" asp-route-id="@salaId" method="post" id="roomForm">
-    @Html.AntiForgeryToken()
+    <form asp-action="Edit" asp-route-id="@salaId" method="post" id="roomForm">
+        @Html.AntiForgeryToken()
 
-    <div class="row g-4">
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label asp-for="Nome" class="form-label">Nome da Sala</label>
-                        <input asp-for="Nome" class="form-control" required />
-                        <span asp-validation-for="Nome" class="text-danger"></span>
+        <div class="row g-4">
+            <div class="col-12 col-md-6">
+                <div class="tm-card">
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label asp-for="Nome" class="tm-form-label">Nome da Sala</label>
+                            <input asp-for="Nome" class="tm-form-control" required />
+                            <span asp-validation-for="Nome" class="text-danger small"></span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label asp-for="MaxColumns" class="tm-form-label">Colunas</label>
+                                <input asp-for="MaxColumns" type="number" min="1" max="20" class="tm-form-control"
+                                       onchange="gerarGrid()" />
+                            </div>
+                            <div class="col-6">
+                                <label asp-for="MaxRows" class="tm-form-label">Linhas</label>
+                                <input asp-for="MaxRows" type="number" min="1" max="20" class="tm-form-control"
+                                       onchange="gerarGrid()" />
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label asp-for="MaxColumns" class="form-label">Colunas</label>
-                            <input asp-for="MaxColumns" type="number" min="1" max="20" class="form-control"
-                                   onchange="gerarGrid()" />
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label asp-for="MaxRows" class="form-label">Linhas</label>
-                            <input asp-for="MaxRows" type="number" min="1" max="20" class="form-control"
-                                   onchange="gerarGrid()" />
-                        </div>
+            <div class="col-12 col-md-6">
+                <div class="tm-card">
+                    <div class="card-body p-4">
+                        <p class="tm-form-label mb-1">Mapa de Assentos</p>
+                        <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1rem;">Clique nos assentos para ativar/desativar.</p>
+                        <div id="seatGrid" class="seat-map-grid" style="display:grid;gap:4px;justify-content:start;"></div>
+                        <input type="hidden" asp-for="AssentosJson" id="AssentosJson" />
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Mapa de Assentos</h5>
-                    <p class="text-muted small">Clique nos assentos para ativar/desativar.</p>
-                    <div id="seatGrid" class="seat-map-grid" style="display:grid;gap:4px;justify-content:start;"></div>
-                    <input type="hidden" asp-for="AssentosJson" id="AssentosJson" />
-                </div>
-            </div>
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="tm-btn tm-btn-primary">
+                <i class="fa-solid fa-save me-1"></i>Salvar
+            </button>
+            <a asp-action="Index" class="tm-btn tm-btn-secondary">Cancelar</a>
         </div>
-    </div>
-
-    <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary">
-            <i class="fa-solid fa-save me-1"></i>Salvar
-        </button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-    </div>
-</form>
+    </form>
+</div>
 
 @section Scripts {
     <script>
@@ -70,9 +78,7 @@
 
             var assentosAtivos = [];
             if (assentosCarregados) {
-                try {
-                    assentosAtivos = JSON.parse(assentosCarregados);
-                } catch(e) {}
+                try { assentosAtivos = JSON.parse(assentosCarregados); } catch(e) {}
             }
 
             for (var y = 1; y <= rows; y++) {
@@ -81,21 +87,16 @@
                     seat.className = 'seat-editor';
                     seat.dataset.x = x;
                     seat.dataset.y = y;
-                    seat.style.cssText = 'width:30px;height:30px;border:1px solid #ccc;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;';
 
                     var codigo = String.fromCharCode(64 + y) + x;
                     seat.textContent = codigo;
 
                     var ativo = assentosAtivos.some(function(a) { return a.seatCode === codigo; });
                     seat.dataset.ativo = ativo ? 'true' : 'false';
-                    seat.style.background = ativo ? '#1a1a1a' : '#e8e8e8';
-                    seat.style.color = ativo ? '#fff' : '#999';
 
                     seat.addEventListener('click', function() {
                         var a = this.dataset.ativo === 'true';
                         this.dataset.ativo = a ? 'false' : 'true';
-                        this.style.background = a ? '#e8e8e8' : '#1a1a1a';
-                        this.style.color = a ? '#999' : '#fff';
                         atualizarAssentos();
                     });
 

@@ -133,7 +133,7 @@ h1, h2, h3, h4, h5, h6 {
    NAVBAR — Glassmorphism Luxo
    ============================================== */
 .tm-navbar {
-  background: rgba(10,10,12,0.88);
+  background: var(--navbar-bg, rgba(10,10,12,0.88));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
@@ -163,7 +163,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .tm-navbar .nav-link:hover {
   color: var(--gold) !important;
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-hover);
 }
 
 /* Theme Toggle */
@@ -253,6 +253,34 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--accent-bright);
   background: var(--accent-glow);
 }
+.tm-btn-secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.tm-btn-secondary:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-glow);
+}
+.tm-btn-success {
+  background: rgba(72,199,142,0.15);
+  border: 1px solid rgba(72,199,142,0.30);
+  color: #48C78E;
+}
+.tm-btn-success:hover {
+  background: rgba(72,199,142,0.25);
+  color: #48C78E;
+}
+.tm-btn-danger {
+  background: rgba(239,68,68,0.10);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #EF4444;
+}
+.tm-btn-danger:hover {
+  background: rgba(239,68,68,0.20);
+  color: #EF4444;
+}
 .tm-btn-sm { padding: 0.45rem 1rem; font-size: 0.78rem; }
 .tm-btn-lg { padding: 1rem 2.2rem; font-size: 0.95rem; }
 
@@ -336,10 +364,43 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.tm-badge-gold   { background: var(--gold-glow); color: var(--gold); }
-.tm-badge-vinho  { background: var(--accent-glow); color: var(--accent-bright); }
-.tm-badge-violet { background: var(--violet-glow); color: var(--violet-soft); }
+.tm-badge-gold    { background: var(--gold-glow); color: var(--gold); }
+.tm-badge-vinho   { background: var(--accent-glow); color: var(--accent-bright); }
+.tm-badge-violet  { background: var(--violet-glow); color: var(--violet-soft); }
 .tm-badge-success { background: rgba(72,199,142,0.12); color: #48C78E; }
+.tm-badge-primary { background: var(--accent-glow); color: var(--accent-bright); }
+.tm-badge-danger  { background: rgba(239,68,68,0.12); color: #EF4444; }
+
+/* Título de seção admin */
+.tm-section-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+/* Seat editor (grid de criação/edição de sala) */
+.seat-editor {
+  width: 30px; height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  background: var(--bg-matte);
+  color: var(--text-muted);
+  transition: var(--ease);
+}
+.seat-editor[data-ativo="true"] {
+  background: var(--accent);
+  border-color: var(--accent-bright);
+  color: #fff;
+}
+.seat-editor:hover {
+  border-color: var(--gold);
+}
 
 /* ==============================================
    FORMS
@@ -382,6 +443,7 @@ h1, h2, h3, h4, h5, h6 {
 .tm-alert-warning { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.18); color: var(--gold); }
 .tm-alert-info    { background: var(--violet-glow); border-color: rgba(91,45,142,0.20); color: var(--violet-soft); }
 .tm-alert-danger  { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.18); color: #EF4444; }
+.tm-alert-success { background: rgba(72,199,142,0.06); border-color: rgba(72,199,142,0.20); color: #48C78E; }
 
 /* ==============================================
    DROPDOWNS
@@ -421,9 +483,7 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
 }
 .auth-body-bg {
-  background:
-    linear-gradient(rgba(10,10,12,0.82), rgba(10,10,12,0.82)),
-    url('/img/backgroud_sun.png') center / cover no-repeat fixed;
+  /* background controlado por [data-theme] abaixo */
 }
 .auth-split {
   display: flex;
@@ -615,7 +675,128 @@ h1, h2, h3, h4, h5, h6 {
 /* ==============================================
    M3 — SEAT MAP
    ============================================== */
-.tm-seat-grid-wrapper {
+
+/* -------------------------------------------------------
+   SVG Theater — wrapper responsivo
+   ------------------------------------------------------- */
+.tm-theater-svg-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #0d0d0d;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+[data-theme="light"] .tm-theater-svg-wrapper {
+  background: #1a1a2e;
+}
+.tm-theater-svg-wrapper svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* -------------------------------------------------------
+   SVG Seat States — sobrescrevem as cores do SVG inline
+   Aplicadas ao <rect id="..."> dentro de .seat-group
+   ------------------------------------------------------- */
+#theater-svg-container .seat { transition: fill 0.18s, stroke 0.18s, opacity 0.18s; }
+
+/* Labels de fileira — sempre brancos sobre fundo escuro do teatro */
+#theater-svg-container .row-label {
+  fill: rgba(255,255,255,0.50) !important;
+  font-size: 10px;
+  font-weight: 600;
+}
+/* Label de número do assento — escuro sobre seats coloridos, branco sobre escuros */
+#theater-svg-container .seat-label {
+  fill: rgba(0,0,0,0.70) !important;
+  font-size: 9px;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+}
+#theater-svg-container .seat-group:has(rect.svg-seat-vendido) .seat-label,
+#theater-svg-container .seat-group:has(rect.svg-seat-meu) .seat-label,
+#theater-svg-container .seat-group:has(rect.svg-seat-selecionado) .seat-label {
+  fill: rgba(255,255,255,0.90) !important;
+}
+
+/* =============================================================
+   DISPONÍVEL — cor do setor (aplicada via atributo data-sector-color no rect)
+   JS define o fill diretamente via dataset + CSS var
+   ============================================================= */
+#theater-svg-container rect.svg-seat-disponivel {
+  opacity: 1;
+  cursor: pointer;
+  /* fill vem do atributo style injetado pelo JS */
+}
+#theater-svg-container .seat-group:has(rect.svg-seat-disponivel):hover rect.svg-seat-disponivel {
+  filter: brightness(1.3) drop-shadow(0 0 5px currentColor);
+  opacity: 1;
+}
+
+/* RESERVADO — cinza azulado, claramente ocupado mas não meu */
+#theater-svg-container rect.svg-seat-reservado {
+  fill: #475569 !important;
+  stroke: #64748B !important;
+  opacity: 0.80;
+  cursor: not-allowed;
+}
+#theater-svg-container .seat-group:has(rect.svg-seat-reservado) .seat-label {
+  fill: rgba(255,255,255,0.55) !important;
+}
+
+/* VENDIDO — vermelho apagado */
+#theater-svg-container rect.svg-seat-vendido {
+  fill: #991B1B !important;
+  stroke: #450a0a !important;
+  opacity: 0.50;
+  cursor: not-allowed;
+}
+
+/* MINHA RESERVA — branco puro com borda accent, destaque máximo */
+#theater-svg-container rect.svg-seat-meu {
+  fill: #ffffff !important;
+  stroke: var(--accent, #8B2252) !important;
+  stroke-width: 2.5px !important;
+  opacity: 1;
+  cursor: pointer;
+  filter: drop-shadow(0 0 6px var(--accent-glow, rgba(139,34,82,0.7)));
+}
+#theater-svg-container .seat-group:has(rect.svg-seat-meu) .seat-label {
+  fill: var(--accent, #8B2252) !important;
+}
+
+/* SELECIONADO AGORA — brilho branco com borda dourada */
+#theater-svg-container rect.svg-seat-selecionado {
+  fill: #FFF7ED !important;
+  stroke: #F59E0B !important;
+  stroke-width: 3px !important;
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(245,158,11,0.8));
+}
+#theater-svg-container .seat-group:has(rect.svg-seat-selecionado) .seat-label {
+  fill: #92400E !important;
+}
+
+/* =============================================================
+   LEGENDA DE STATUS — abaixo do mapa
+   ============================================================= */
+.tm-legend-dot {
+  width: 14px; height: 14px; border-radius: 3px; display: inline-block;
+  flex-shrink: 0;
+}
+/* Dots de setor (na legenda de preços) mantêm a cor do setor */
+.tm-sector-dot  { width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0; }
+
+/* Reservado, Vendido, Minha Reserva — cores fixas */
+.tm-legend-dot.svg-seat-reservado   { background: #475569; }
+.tm-legend-dot.svg-seat-vendido     { background: #991B1B; opacity: .55; }
+.tm-legend-dot.svg-seat-meu         { background: #ffffff; border: 2px solid #8B2252; }
+
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding: var(--space-md);
@@ -649,10 +830,120 @@ h1, h2, h3, h4, h5, h6 {
 .seat-selected { background: var(--accent); color: #fff; box-shadow: 0 0 16px var(--accent-glow); transform: scale(1.06); }
 .tm-seat-btn:disabled { cursor: not-allowed; }
 
+/* Estados de assento com cor de setor dinâmica */
+.seat-disponivel {
+  background: color-mix(in srgb, var(--seat-color, #10B981) 15%, transparent);
+  border-color: color-mix(in srgb, var(--seat-color, #10B981) 40%, transparent);
+  color: var(--seat-color, #10B981);
+}
+.seat-disponivel:hover:not(:disabled) {
+  background: var(--seat-color, #10B981);
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--seat-color, #10B981) 50%, transparent);
+}
+.seat-reservado {
+  background: rgba(245,166,35,0.12);
+  border-color: rgba(245,166,35,0.4);
+  color: var(--color-accent, #F5A623);
+  opacity: .85;
+}
+.seat-vendido {
+  background: rgba(239,68,68,0.07);
+  border-color: rgba(239,68,68,0.2);
+  color: rgba(239,68,68,0.5);
+  opacity: .55;
+  cursor: not-allowed;
+}
+.seat-selecionado-usuario {
+  background: var(--accent, #8B2252);
+  border-color: var(--accent, #8B2252);
+  color: #fff;
+  transform: scale(1.12);
+  box-shadow: 0 0 16px var(--accent-glow, rgba(139,34,82,0.4));
+  z-index: 1;
+  position: relative;
+}
+
+/* Blocos por setor */
+.tm-sector-block {
+  margin-bottom: var(--space-xl);
+}
+.tm-sector-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+}
+.tm-sector-indicator {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tm-seat-grid {
+  display: inline-grid;
+  gap: 4px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Legenda de setores e preços */
+.tm-sector-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+.tm-sector-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .75rem;
+}
+.tm-sector-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tm-sector-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-right: 2px;
+}
+.tm-sector-price {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+}
+.tm-sector-price + .tm-sector-price { margin-left: 2px; }
+
 /* Stage */
 .tm-stage {
   text-align: center;
-  padding: var(--space-lg) 0;
+  padding: var(--space-lg) 0 var(--space-md);
+}
+.tm-stage-shape {
+  display: inline-block;
+  width: min(480px, 80vw);
+  height: 12px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 40%, var(--gold) 60%, transparent 100%);
+  border-radius: 100px;
+  opacity: 0.5;
+  margin-bottom: var(--space-xs);
 }
 .tm-stage-bar {
   display: inline-block;
@@ -715,6 +1006,61 @@ h1, h2, h3, h4, h5, h6 {
   .tm-hero-content { bottom: var(--space-lg); }
   .tm-title-lg { font-size: 1.5rem; }
   .tm-selection-panel { flex-direction: column; text-align: center; }
+}
+
+/* ==============================================
+   TEMA CLARO
+   ============================================== */
+[data-theme="light"] #theater-svg-container .row-label {
+  fill: rgba(255,255,255,0.65) !important;
+}
+[data-theme="light"] #theater-svg-container .seat-label {
+  fill: rgba(0,0,0,0.80) !important;
+}
+
+[data-theme="light"] {
+  --bg-deep:    #F5F3F7;
+  --bg-matte:   #EDEAF1;
+  --bg-card:    #FFFFFF;
+  --bg-hover:   #F0ECF6;
+  --border:     #D8D2E2;
+  --border-glow:#E0C8DC;
+
+  --accent:         #8B2252;
+  --accent-bright:  #B0306A;
+  --accent-glow:    rgba(139,34,82,0.15);
+
+  --violet:         #5B2D8E;
+  --violet-soft:    #7B56B0;
+  --violet-glow:    rgba(91,45,142,0.12);
+
+  --gold:           #A07830;
+  --gold-dim:       #8A6420;
+  --gold-glow:      rgba(160,120,48,0.15);
+
+  --text-primary:   #1A1520;
+  --text-secondary: #4A455A;
+  --text-muted:     #8A849A;
+
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 24px rgba(0,0,0,0.12);
+  --shadow-lg: 0 8px 48px rgba(0,0,0,0.16);
+  --shadow-glow: 0 0 40px var(--accent-glow);
+
+  --navbar-bg: rgba(245,243,247,0.92);
+}
+
+/* Login background por tema */
+[data-theme="light"] .auth-body-bg {
+  background:
+    linear-gradient(rgba(245,243,247,0.30), rgba(245,243,247,0.30)),
+    url('/img/backgroud_sun.png') center / cover no-repeat fixed;
+}
+[data-theme="dark"] .auth-body-bg,
+.auth-body-bg {
+  background:
+    linear-gradient(rgba(10,10,12,0.35), rgba(10,10,12,0.35)),
+    url('/img/backgroud_moon.png') center / cover no-repeat fixed;
 }
 
 /* ==============================================

@@ -50,7 +50,6 @@
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
                                 <ul class="dropdown-menu dropdown-menu-end tm-dropdown">
                                     <li><a class="dropdown-item" asp-area="Admin" asp-controller="Eventos" asp-action="Index"><i class="fa-solid fa-calendar me-2"></i>Eventos</a></li>
-                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="Room" asp-action="Index"><i class="fa-solid fa-door-open me-2"></i>Salas</a></li>
                                     @if (User.IsInRole("AdminGeral"))
                                     {
                                         <li><hr class="dropdown-divider" /></li>

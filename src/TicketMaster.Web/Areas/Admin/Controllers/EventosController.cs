@@ -1,11 +1,10 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using TicketMaster.Application.Queries.ListarEventosAtivos;
 using TicketMaster.Domain.Entities;
 using TicketMaster.Infrastructure.Data;
+using TicketMaster.Web.Models;
 
 namespace TicketMaster.Web.Areas.Admin.Controllers;
 
@@ -14,14 +13,19 @@ namespace TicketMaster.Web.Areas.Admin.Controllers;
 public class EventosController : Controller
 {
     private readonly AppDbContext _db;
-    private readonly IMediator _mediator;
     private readonly IWebHostEnvironment _env;
 
-    public EventosController(AppDbContext db, IMediator mediator, IWebHostEnvironment env)
+    public EventosController(AppDbContext db, IWebHostEnvironment env)
     {
         _db = db;
-        _mediator = mediator;
         _env = env;
+    }
+
+    private async Task<Guid> GetSalaFixaIdAsync()
+    {
+        var sala = await _db.Rooms.FirstOrDefaultAsync()
+            ?? throw new InvalidOperationException("Sala do teatro não encontrada. Execute o seed primeiro.");
+        return sala.Id;
     }
 
     public async Task<IActionResult> Index(CancellationToken ct = default)
@@ -32,17 +36,17 @@ public class EventosController : Controller
         return View(eventos);
     }
 
-    public IActionResult Create()
-    {
-        ViewBag.Salas = new SelectList(_db.Rooms.ToList(), "Id", "Name");
-        return View();
-    }
+    public IActionResult Create() => View();
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Event evento, Guid roomId)
+    public async Task<IActionResult> Create(EventoFormViewModel model)
     {
-        evento = new Event(evento.Title, evento.EventDate, roomId);
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var roomId = await GetSalaFixaIdAsync();
+        var evento = new Event(model.Title, model.EventDate, roomId);
         _db.Events.Add(evento);
         await _db.SaveChangesAsync();
         TempData["Sucesso"] = $"Evento \"{evento.Title}\" criado!";
@@ -53,20 +57,30 @@ public class EventosController : Controller
     {
         var evento = await _db.Events.FindAsync(new object[] { id }, ct);
         if (evento == null) return NotFound();
-        ViewBag.Salas = new SelectList(_db.Rooms.ToList(), "Id", "Name", evento.RoomId);
-        return View(evento);
+        ViewBag.EventoId = id;
+        ViewBag.ImagemUrl = evento.ImagemUrl;
+        var vm = new EventoFormViewModel
+        {
+            Title = evento.Title,
+            EventDate = evento.EventDate,
+        };
+        return View(vm);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, Event model, Guid roomId, CancellationToken ct = default)
+    public async Task<IActionResult> Edit(Guid id, EventoFormViewModel model, CancellationToken ct = default)
     {
+        if (!ModelState.IsValid)
+        {
+            ViewBag.EventoId = id;
+            return View(model);
+        }
         var evento = await _db.Events.FindAsync(new object[] { id }, ct);
         if (evento == null) return NotFound();
 
         typeof(Event).GetProperty(nameof(Event.Title))!.SetValue(evento, model.Title);
         typeof(Event).GetProperty(nameof(Event.EventDate))!.SetValue(evento, model.EventDate);
-        typeof(Event).GetProperty(nameof(Event.RoomId))!.SetValue(evento, roomId);
 
         await _db.SaveChangesAsync(ct);
         TempData["Sucesso"] = "Evento atualizado!";
@@ -121,7 +135,7 @@ public class EventosController : Controller
         }
 
         var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-        var ext = Path.GetExtension(imagemEvento.FileName).ToLower();
+        var ext = Path.GetExtension(imagemEvento.FileName).ToLowerInvariant();
         if (!allowed.Contains(ext))
         {
             TempData["Erro"] = "Formato não permitido. Use JPG, PNG ou WebP.";

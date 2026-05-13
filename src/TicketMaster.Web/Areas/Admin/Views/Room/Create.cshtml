@@ -4,56 +4,64 @@
     Layout = "_Layout";
 }
 
-<h1 class="h3 mb-4"><i class="fa-solid fa-plus me-2"></i>Nova Sala</h1>
+<div class="container tm-page">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a asp-action="Index" class="tm-btn tm-btn-secondary tm-btn-sm">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h1 class="tm-section-title mb-0">
+            <i class="fa-solid fa-plus me-2" style="color:var(--accent);"></i>Nova Sala
+        </h1>
+    </div>
 
-<form asp-action="Create" method="post" id="roomForm">
-    @Html.AntiForgeryToken()
+    <form asp-action="Create" method="post" id="roomForm">
+        @Html.AntiForgeryToken()
 
-    <div class="row g-4">
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label asp-for="Nome" class="form-label">Nome da Sala</label>
-                        <input asp-for="Nome" class="form-control" required />
-                        <span asp-validation-for="Nome" class="text-danger"></span>
+        <div class="row g-4">
+            <div class="col-12 col-md-6">
+                <div class="tm-card">
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label asp-for="Nome" class="tm-form-label">Nome da Sala</label>
+                            <input asp-for="Nome" class="tm-form-control" required />
+                            <span asp-validation-for="Nome" class="text-danger small"></span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label asp-for="MaxColumns" class="tm-form-label">Colunas</label>
+                                <input asp-for="MaxColumns" type="number" min="1" max="20" class="tm-form-control"
+                                       onchange="gerarGrid()" />
+                            </div>
+                            <div class="col-6">
+                                <label asp-for="MaxRows" class="tm-form-label">Linhas</label>
+                                <input asp-for="MaxRows" type="number" min="1" max="20" class="tm-form-control"
+                                       onchange="gerarGrid()" />
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label asp-for="MaxColumns" class="form-label">Colunas</label>
-                            <input asp-for="MaxColumns" type="number" min="1" max="20" class="form-control"
-                                   onchange="gerarGrid()" />
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label asp-for="MaxRows" class="form-label">Linhas</label>
-                            <input asp-for="MaxRows" type="number" min="1" max="20" class="form-control"
-                                   onchange="gerarGrid()" />
-                        </div>
+            <div class="col-12 col-md-6">
+                <div class="tm-card">
+                    <div class="card-body p-4">
+                        <p class="tm-form-label mb-1">Mapa de Assentos</p>
+                        <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1rem;">Clique nos assentos para ativar/desativar.</p>
+                        <div id="seatGrid" class="seat-map-grid" style="display:grid;gap:4px;justify-content:start;"></div>
+                        <input type="hidden" asp-for="AssentosJson" id="AssentosJson" />
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Mapa de Assentos</h5>
-                    <p class="text-muted small">Clique nos assentos para ativar/desativar.</p>
-                    <div id="seatGrid" class="seat-map-grid" style="display:grid;gap:4px;justify-content:start;"></div>
-                    <input type="hidden" asp-for="AssentosJson" id="AssentosJson" />
-                </div>
-            </div>
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="tm-btn tm-btn-primary">
+                <i class="fa-solid fa-check me-1"></i>Criar Sala
+            </button>
+            <a asp-action="Index" class="tm-btn tm-btn-secondary">Cancelar</a>
         </div>
-    </div>
-
-    <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary">
-            <i class="fa-solid fa-check me-1"></i>Criar Sala
-        </button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-    </div>
-</form>
+    </form>
+</div>
 
 @section Scripts {
     <script>
@@ -61,7 +69,6 @@
             var cols = parseInt(document.getElementById('MaxColumns').value) || 0;
             var rows = parseInt(document.getElementById('MaxRows').value) || 0;
             var grid = document.getElementById('seatGrid');
-            var assentosJson = document.getElementById('AssentosJson');
 
             grid.style.gridTemplateColumns = 'repeat(' + cols + ', 32px)';
             grid.innerHTML = '';
@@ -74,14 +81,12 @@
                     seat.className = 'seat-editor';
                     seat.dataset.x = x;
                     seat.dataset.y = y;
-                    seat.style.cssText = 'width:30px;height:30px;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:9px;color:#999;';
+                    seat.dataset.ativo = 'true';
                     seat.textContent = String.fromCharCode(64 + y) + x;
 
                     seat.addEventListener('click', function() {
                         var ativo = this.dataset.ativo === 'true';
                         this.dataset.ativo = ativo ? 'false' : 'true';
-                        this.style.background = ativo ? '#e8e8e8' : '#1a1a1a';
-                        this.style.color = ativo ? '#999' : '#fff';
                         atualizarAssentos();
                     });
 
@@ -90,14 +95,7 @@
                 }
             }
 
-            // Marca todos ativos por padrão
-            document.querySelectorAll('.seat-editor').forEach(function(el) {
-                el.dataset.ativo = 'true';
-                el.style.background = '#1a1a1a';
-                el.style.color = '#fff';
-            });
-
-            assentosJson.value = JSON.stringify(assentos);
+            document.getElementById('AssentosJson').value = JSON.stringify(assentos);
         }
 
         function atualizarAssentos() {

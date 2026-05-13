@@ -15,6 +15,11 @@ public class Event
     //============================================================================
     // Construtor privado para o EF
     //============================================================================
+    //============================================================================
+    // Construtor privado para o EF Core (materialização via reflexão)
+    //============================================================================
+    private Event() { Title = string.Empty; }
+
     public Event(string title, DateTime eventDate, Guid roomId)
     {
         if (string.IsNullOrWhiteSpace(title))

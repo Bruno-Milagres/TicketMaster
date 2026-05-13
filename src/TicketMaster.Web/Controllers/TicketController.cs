@@ -22,13 +22,15 @@ public class TicketController : Controller
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly AppDbContext _context;
     private readonly IConfiguration _config;
+    private readonly IWebHostEnvironment _env;
 
-    public TicketController(IMediator mediator, IPublishEndpoint publishEndpoint, AppDbContext context, IConfiguration config)
+    public TicketController(IMediator mediator, IPublishEndpoint publishEndpoint, AppDbContext context, IConfiguration config, IWebHostEnvironment env)
     {
         _mediator = mediator;
         _publishEndpoint = publishEndpoint;
         _context = context;
         _config = config;
+        _env = env;
     }
 
     //=====================================================
@@ -50,10 +52,20 @@ public class TicketController : Controller
         var sala = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == evento.RoomId, cancellationToken);
         var tickets = await _mediator.Send(new ObterIngressosPorEventoQuery(eventId), cancellationToken);
 
+        var sectorPrices = await _context.EventSectorPrices
+            .Where(p => p.EventId == eventId)
+            .ToListAsync(cancellationToken);
+
+        var svgPath = Path.Combine(_env.WebRootPath, "svg", "theater-layout.svg");
+        var svgContent = System.IO.File.Exists(svgPath)
+            ? await System.IO.File.ReadAllTextAsync(svgPath, cancellationToken)
+            : string.Empty;
+
         ViewBag.CurrentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        ViewBag.EventId = eventId;
-        ViewBag.EventName = evento.Title;
-        ViewBag.RoomLayout = sala?.Layout;
+        ViewBag.EventId       = eventId;
+        ViewBag.EventName     = evento.Title;
+        ViewBag.SectorPrices  = sectorPrices;
+        ViewBag.TheaterSvg    = svgContent;
 
         return View(tickets);
     }
@@ -79,7 +91,7 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId, int category = 0, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {

@@ -8,9 +8,7 @@
 @* HERO BANNER — Banner em /img/bunner com overlay escuro *@
 <section class="tm-hero">
     <picture>
-        <img src="~/img/bunner" alt="Theatro" class="tm-hero-img"
-             onerror="this.style.display='none';this.parentElement.nextElementSibling.style.background='linear-gradient(135deg,var(--accent),var(--bg-deep))';"
-             loading="eager" />
+        <img src="~/img/bunner.png" alt="Theatro" class="tm-hero-img" id="tm-hero-img" loading="eager" />
     </picture>
     <div class="tm-hero-overlay"></div>
     <div class="tm-hero-content container">
@@ -18,6 +16,15 @@
         <p class="tm-subtitle">Descubra a programação do teatro. Garanta seu lugar para uma experiência inesquecível.</p>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        document.getElementById('tm-hero-img').addEventListener('error', function() {
+            this.style.display = 'none';
+            this.parentElement.nextElementSibling.style.background = 'linear-gradient(135deg,var(--accent),var(--bg-deep))';
+        });
+    </script>
+}
 
 @* EVENTOS *@
 <section class="container" style="padding-top:var(--space-2xl);padding-bottom:var(--space-3xl);">
