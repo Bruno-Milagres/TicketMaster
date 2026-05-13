@@ -977,7 +977,82 @@ main { flex: 1; }
 }
 
 /* ==============================================
-   FIX — TEMA ESCURO + TOGGLE VISÍVEL
+   FIX — TEMA ESCURO (textos legíveis em TODOS os componentes)
+   ============================================== */
+[data-theme="dark"] body,
+[data-theme="dark"] .card,
+[data-theme="dark"] .card-body,
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .card-footer {
+    color: #e8e8e8;
+}
+[data-theme="dark"] .table,
+[data-theme="dark"] .table-hover tbody tr,
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+    color: #e0e0e0;
+}
+[data-theme="dark"] .table-hover tbody tr:hover {
+    color: #fff;
+}
+[data-theme="dark"] .table-light {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+[data-theme="dark"] .table-light th {
+    color: #e0e0e0;
+}
+[data-theme="dark"] .dropdown-menu {
+    background-color: #1a1a1a;
+    border-color: #333;
+}
+[data-theme="dark"] .dropdown-item {
+    color: #d0d0d0;
+}
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: #2a2a2a;
+    color: #fff;
+}
+[data-theme="dark"] .dropdown-divider {
+    border-color: #333;
+}
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: #1a1a1a;
+    border-color: #333;
+    color: #e8e8e8;
+}
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: #222;
+    color: #fff;
+    border-color: #666;
+}
+[data-theme="dark"] .form-label,
+[data-theme="dark"] label {
+    color: #d0d0d0;
+}
+[data-theme="dark"] .text-muted {
+    color: #999 !important;
+}
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link,
+[data-theme="dark"] .navbar-light .navbar-brand {
+    color: #e0e0e0;
+}
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link:hover,
+[data-theme="dark"] .navbar-light .navbar-brand:hover {
+    color: #fff;
+}
+[data-theme="dark"] .alert {
+    color: #e0e0e0;
+}
+[data-theme="dark"] .alert-warning {
+    color: #b8860b;
+    background-color: #1a1500;
+    border-color: #332b00;
+}
+
+/* ==============================================
+   FIX — TOGGLE VISÍVEL EM AMBOS OS TEMAS
    ============================================== */
 [data-theme="dark"] .navbar-nav .nav-link,
 [data-theme="dark"] .navbar-nav .dropdown-toggle {
