@@ -16,6 +16,8 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<TipoIngresso> TiposIngresso { get; set; }
     public DbSet<Pedido> Pedidos { get; set; }
     public DbSet<ItemPedido> ItensPedido { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<PrecoHistorico> PrecosHistoricos { get; set; }
 
     //=========================================================
     // Cria as tabelas baseadas nas entidades e configurações

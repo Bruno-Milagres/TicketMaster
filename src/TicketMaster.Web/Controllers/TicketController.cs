@@ -3,12 +3,16 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 using TicketMaster.Application.Commands.CancelarReserva;
 using TicketMaster.Application.Commands.ReservarAssento;
 using TicketMaster.Application.Messages;
 using TicketMaster.Application.Queries.ObterIngressosPorEvento;
+using TicketMaster.Domain.Entities;
 using TicketMaster.Infrastructure.Data;
+using TicketMaster.Web.Services;
 
 namespace TicketMaster.Web.Controllers;
 
@@ -17,12 +21,14 @@ public class TicketController : Controller
     private readonly IMediator _mediator;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly AppDbContext _context;
+    private readonly IConfiguration _config;
 
-    public TicketController(IMediator mediator, IPublishEndpoint publishEndpoint, AppDbContext context)
+    public TicketController(IMediator mediator, IPublishEndpoint publishEndpoint, AppDbContext context, IConfiguration config)
     {
         _mediator = mediator;
         _publishEndpoint = publishEndpoint;
         _context = context;
+        _config = config;
     }
 
     //=====================================================
@@ -174,4 +180,70 @@ public class TicketController : Controller
 
         return RedirectToAction("Index", new { eventId });
     }
+
+    //====================================================================================================================
+    // B4 — Página do ingresso com QR Code
+    //====================================================================================================================
+    [Authorize]
+    public async Task<IActionResult> Ingresso(Guid ticketId, CancellationToken cancellationToken = default)
+    {
+        var ticket = await _context.Tickets
+            .FirstOrDefaultAsync(t => t.Id == ticketId, cancellationToken);
+        if (ticket == null) return NotFound();
+
+        var evento = await _context.Events.FindAsync(new object[] { ticket.EventId }, cancellationToken);
+        var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+        var payload = qrService.GerarPayloadJwt(ticketId, ticket.EventId, ticket.AssentoCodigo, userId);
+        var qrBytes = qrService.GerarQrCodePng(payload);
+
+        ViewBag.QrCodeBase64 = Convert.ToBase64String(qrBytes);
+        ViewBag.EventName = evento?.Title ?? "Evento";
+        ViewBag.SeatCode = ticket.AssentoCodigo;
+        ViewBag.TicketId = ticketId;
+
+        return View();
+    }
+
+    //====================================================================================================================
+    // B4 — Endpoint de validação de QR Code (para scanner na entrada)
+    //====================================================================================================================
+    [HttpPost("api/tickets/validate")]
+    public async Task<IActionResult> ValidateQr([FromBody] ValidateQrRequest request)
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var secret = _config["Jwt:Secret"] ?? "ChaveSuperSecretaTicketMaster2026!";
+            var key = new SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(secret));
+
+            var result = await handler.ValidateTokenAsync(request.QrPayload, new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = "ticketmaster",
+                ValidateAudience = true,
+                ValidAudience = "ticket-validator",
+                ValidateLifetime = true,
+                IssuerSigningKey = key
+            });
+
+            if (!result.IsValid)
+                return Forbid();
+
+            var tid = Guid.Parse(result.Claims["tid"].ToString()!);
+            var ticket = await _context.Tickets.FindAsync(tid);
+            if (ticket == null || ticket.Status != TicketStatus.Vendido)
+                return StatusCode(403, new { error = "TICKET_INVALIDO" });
+
+            return Ok(new { status = "ACCESS_GRANTED", seatCode = ticket.AssentoCodigo });
+        }
+        catch
+        {
+            return StatusCode(403, new { error = "INVALID_TOKEN" });
+        }
+    }
 }
+
+public record ValidateQrRequest(string QrPayload);
