@@ -25,8 +25,15 @@
         @* Lado direito — Formulário *@
         <div class="auth-form-side">
             <div class="auth-form-card">
-                <h1 class="auth-title">Bem-vindo ao Theatro</h1>
-                <p class="auth-subtitle">Entre com sua conta para continuar</p>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">
+                    <div>
+                        <h1 class="auth-title">Bem-vindo ao Theatro</h1>
+                        <p class="auth-subtitle">Entre com sua conta para continuar</p>
+                    </div>
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema" aria-label="Alternar tema claro/escuro" style="flex-shrink:0;">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                </div>
 
                 <form id="account" method="post" autocomplete="on">
                     <div asp-validation-summary="ModelOnly" class="tm-alert tm-alert-danger mb-3" role="alert"></div>
@@ -65,6 +72,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
 
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />
