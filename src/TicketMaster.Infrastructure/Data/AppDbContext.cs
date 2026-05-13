@@ -13,6 +13,13 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<Event> Events { get; set; }
     public DbSet<Room> Rooms { get; set; }
+    public DbSet<TipoIngresso> TiposIngresso { get; set; }
+    public DbSet<EventSectorPrice> EventSectorPrices { get; set; }
+    public DbSet<CamaroteGroup> CamaroteGroups { get; set; }
+    public DbSet<Pedido> Pedidos { get; set; }
+    public DbSet<ItemPedido> ItensPedido { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<PrecoHistorico> PrecosHistoricos { get; set; }
 
     //=========================================================
     // Cria as tabelas baseadas nas entidades e configurações
@@ -31,5 +38,30 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
         builder.Entity<Ticket>()
             .Property(t => t.Versao)
             .IsConcurrencyToken();
+
+        builder.Entity<Ticket>()
+            .HasOne<CamaroteGroup>()
+            .WithMany(g => g.Assentos)
+            .HasForeignKey(t => t.CamaroteGroupId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<TipoIngresso>()
+            .Property(t => t.Preco)
+            .HasPrecision(18, 2);
+        builder.Entity<Pedido>()
+            .Property(p => p.Total)
+            .HasPrecision(18, 2);
+        builder.Entity<ItemPedido>()
+            .Property(i => i.PrecoUnitario)
+            .HasPrecision(18, 2);
+        builder.Entity<EventSectorPrice>()
+            .Property(e => e.Price)
+            .HasPrecision(18, 2);
+        builder.Entity<PrecoHistorico>()
+            .Property(p => p.PrecoAnterior)
+            .HasPrecision(18, 2);
+        builder.Entity<PrecoHistorico>()
+            .Property(p => p.PrecoNovo)
+            .HasPrecision(18, 2);
     }
 }

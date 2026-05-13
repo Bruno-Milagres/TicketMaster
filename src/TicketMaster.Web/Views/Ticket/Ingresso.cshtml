@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Seu Ingresso";
+    var qrData = $"data:image/png;base64,{ViewBag.QrCodeBase64}";
+}
+
+<div class="container" style="padding-top:2rem;padding-bottom:4rem;">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="tm-card text-center">
+                <div class="card-body" style="padding:3rem 2rem;">
+                    <div style="width:60px;height:60px;border-radius:50%;background:var(--color-accent-glow);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+                        <i class="fa-solid fa-ticket" style="color:var(--color-accent);font-size:1.5rem;"></i>
+                    </div>
+
+                    <h1 class="tm-card-title mb-1">@ViewBag.EventName</h1>
+                    <p class="tm-label" style="font-size:0.85rem;text-transform:none;letter-spacing:0;">
+                        <i class="fa-regular fa-location-dot me-1"></i>Assento: <strong style="color:var(--color-text-primary);">@ViewBag.SeatCode</strong>
+                    </p>
+
+                    <div style="margin:2rem auto;max-width:220px;">
+                        <img src="@qrData" alt="QR Code do ingresso" class="img-fluid" style="border-radius:var(--radius-md);" />
+                    </div>
+
+                    <p class="tm-label" style="font-size:0.8rem;text-transform:none;letter-spacing:0;color:var(--color-text-muted);">
+                        <i class="fa-regular fa-circle-info me-1"></i>Apresente este QR Code na entrada do evento.
+                    </p>
+
+                    <div class="d-flex gap-2 justify-content-center mt-4">
+                        <button class="tm-btn tm-btn-primary" onclick="window.print()">
+                            <i class="fa-solid fa-print me-1"></i>Imprimir
+                        </button>
+                        <a asp-controller="Home" asp-action="MeusPedidos" class="tm-btn tm-btn-secondary">
+                            <i class="fa-solid fa-arrow-left me-1"></i>Voltar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        @@media print {
+            header, footer, .navbar, .tm-btn { display: none !important; }
+            .tm-card { border: none !important; box-shadow: none !important; }
+            body { background: #fff; }
+        }
+    </style>
+}

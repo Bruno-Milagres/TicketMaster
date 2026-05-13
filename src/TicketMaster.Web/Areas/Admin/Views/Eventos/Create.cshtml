@@ -1,0 +1,42 @@
+@model TicketMaster.Web.Models.EventoFormViewModel
+@{
+    ViewData["Title"] = "Criar Evento";
+}
+
+<div class="container tm-page">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a asp-action="Index" class="tm-btn tm-btn-secondary tm-btn-sm">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h1 class="tm-section-title mb-0">
+            <i class="fa-solid fa-plus me-2" style="color:var(--accent);"></i>Novo Evento
+        </h1>
+    </div>
+
+    <div class="tm-card">
+        <div class="card-body p-4">
+            <form method="post" asp-action="Create">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="tm-alert tm-alert-danger mb-3"></div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label asp-for="Title" class="tm-form-label">Título</label>
+                        <input asp-for="Title" class="tm-form-control" required />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="EventDate" class="tm-form-label">Data do Evento</label>
+                        <input asp-for="EventDate" class="tm-form-control" type="datetime-local" required />
+                        <span asp-validation-for="EventDate" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="tm-btn tm-btn-primary">
+                        <i class="fa-solid fa-check me-1"></i>Criar
+                    </button>
+                    <a asp-action="Index" class="tm-btn tm-btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

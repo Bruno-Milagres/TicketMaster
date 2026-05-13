@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -6,7 +6,7 @@
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item">
-            <a class="nav-link btn btn-sm btn-outline-secondary border-0" asp-area="Identity" asp-page="/Account/Manage/Index" title="Gerenciar conta">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Gerenciar conta">
                 <i class="fa-regular fa-circle-user me-1"></i>@User.Identity?.Name
             </a>
         </li>
@@ -21,12 +21,12 @@
     else
     {
         <li class="nav-item">
-            <a class="nav-link btn btn-sm btn-outline-secondary border-0" asp-area="Identity" asp-page="/Account/Register">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">
                 <i class="fa-regular fa-user me-1"></i>Registrar-se
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link btn btn-sm btn-primary text-white" asp-area="Identity" asp-page="/Account/Login">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Login" style="color: var(--gold) !important;font-weight:600;">
                 <i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Entrar
             </a>
         </li>

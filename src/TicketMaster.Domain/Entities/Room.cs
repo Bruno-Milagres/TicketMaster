@@ -6,6 +6,26 @@ public class Room
     public string Name { get; private set; } = null!;
     public RoomLayout Layout { get; private set; } = null!;
 
+    // ==========================================================
+    // Setores fixos do teatro
+    // ==========================================================
+    public static class Sectors
+    {
+        public const string PlateiaFrente  = "PlateiaFrente";
+        public const string PlateiaCentro  = "PlateiaCentro";
+        public const string PlateiaFundo   = "PlateiaFundo";
+        public const string Frisa          = "Frisa";
+        public const string Camarote       = "Camarote";
+        public const string Balcao         = "Balcao";
+        public const string Acessibilidade = "Acessibilidade";
+
+        public static readonly IReadOnlyList<string> All = new[]
+        {
+            PlateiaFrente, PlateiaCentro, PlateiaFundo,
+            Frisa, Camarote, Balcao, Acessibilidade
+        };
+    }
+
     //============================================================================
     // Construtor privado exigido pelo EF Core para materialização via reflexão.
     //============================================================================
@@ -32,14 +52,16 @@ public class Room
     //============================================================================
     public class SeatCoordinate
     {
-        // Código único do assento, por exemplo "A1".
+        /// <summary>Código único do assento, ex: "A1", "CAM-A1", "BAL-A1".</summary>
         public string SeatCode { get; set; } = string.Empty;
-        //Coluna no CSS Grid./
+        /// <summary>Coluna no CSS Grid.</summary>
         public int CoordX { get; set; }
-        // Linha no CSS Grid.
+        /// <summary>Linha no CSS Grid.</summary>
         public int CoordY { get; set; }
-        // Tipo do assento: Standard, VIP ou Cadeirante.
+        /// <summary>Tipo: Standard, VIP, Cadeirante.</summary>
         public string Type { get; set; } = "Standard";
+        /// <summary>Setor do teatro: PlateiaFrente, PlateiaCentro, PlateiaFundo, Frisa, Camarote, Balcao, Acessibilidade.</summary>
+        public string Sector { get; set; } = Sectors.PlateiaCentro;
     }
 
     //==========================================================================================

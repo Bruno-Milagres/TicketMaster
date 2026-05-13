@@ -1,0 +1,55 @@
+@model List<AdminUserView>
+@{
+    ViewData["Title"] = "Gerenciar Administradores";
+}
+
+<div class="container tm-page">
+    <div class="mb-4">
+        <h1 class="tm-section-title">
+            <i class="fa-solid fa-shield-halved me-2" style="color:var(--accent);"></i>Administradores
+        </h1>
+    </div>
+
+    <div class="tm-card">
+        <div class="card-body p-0">
+            <table class="tm-table">
+                <thead>
+                    <tr>
+                        <th>E-mail</th>
+                        <th>Roles</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        <tr>
+                            <td>@u.Email</td>
+                            <td>
+                                @foreach (var r in u.Roles.Split(", "))
+                                {
+                                    var badgeClass = r == "AdminGeral" ? "tm-badge-danger" : "tm-badge-gold";
+                                    <span class="tm-badge @badgeClass me-1">@r</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @foreach (var r in u.Roles.Split(", "))
+                                {
+                                    <form method="post" asp-action="RemoveRole" class="d-inline"
+                                          onsubmit="return confirm('Remover role @r de @u.Email?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@u.Id" />
+                                        <input type="hidden" name="role" value="@r" />
+                                        <button type="submit" class="tm-btn tm-btn-danger tm-btn-sm me-1">
+                                            <i class="fa-solid fa-user-minus me-1"></i>@r
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

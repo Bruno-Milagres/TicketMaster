@@ -3,12 +3,16 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 using TicketMaster.Application.Commands.CancelarReserva;
 using TicketMaster.Application.Commands.ReservarAssento;
 using TicketMaster.Application.Messages;
 using TicketMaster.Application.Queries.ObterIngressosPorEvento;
+using TicketMaster.Domain.Entities;
 using TicketMaster.Infrastructure.Data;
+using TicketMaster.Web.Services;
 
 namespace TicketMaster.Web.Controllers;
 
@@ -17,12 +21,16 @@ public class TicketController : Controller
     private readonly IMediator _mediator;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly AppDbContext _context;
+    private readonly IConfiguration _config;
+    private readonly IWebHostEnvironment _env;
 
-    public TicketController(IMediator mediator, IPublishEndpoint publishEndpoint, AppDbContext context)
+    public TicketController(IMediator mediator, IPublishEndpoint publishEndpoint, AppDbContext context, IConfiguration config, IWebHostEnvironment env)
     {
         _mediator = mediator;
         _publishEndpoint = publishEndpoint;
         _context = context;
+        _config = config;
+        _env = env;
     }
 
     //=====================================================
@@ -44,10 +52,20 @@ public class TicketController : Controller
         var sala = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == evento.RoomId, cancellationToken);
         var tickets = await _mediator.Send(new ObterIngressosPorEventoQuery(eventId), cancellationToken);
 
+        var sectorPrices = await _context.EventSectorPrices
+            .Where(p => p.EventId == eventId)
+            .ToListAsync(cancellationToken);
+
+        var svgPath = Path.Combine(_env.WebRootPath, "svg", "theater-layout.svg");
+        var svgContent = System.IO.File.Exists(svgPath)
+            ? await System.IO.File.ReadAllTextAsync(svgPath, cancellationToken)
+            : string.Empty;
+
         ViewBag.CurrentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        ViewBag.EventId = eventId;
-        ViewBag.EventName = evento.Title;
-        ViewBag.RoomLayout = sala?.Layout;
+        ViewBag.EventId       = eventId;
+        ViewBag.EventName     = evento.Title;
+        ViewBag.SectorPrices  = sectorPrices;
+        ViewBag.TheaterSvg    = svgContent;
 
         return View(tickets);
     }
@@ -73,7 +91,7 @@ public class TicketController : Controller
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Reservar(string assentoCodigo, Guid eventId, int category = 0, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
@@ -174,4 +192,70 @@ public class TicketController : Controller
 
         return RedirectToAction("Index", new { eventId });
     }
+
+    //====================================================================================================================
+    // B4 — Página do ingresso com QR Code
+    //====================================================================================================================
+    [Authorize]
+    public async Task<IActionResult> Ingresso(Guid ticketId, CancellationToken cancellationToken = default)
+    {
+        var ticket = await _context.Tickets
+            .FirstOrDefaultAsync(t => t.Id == ticketId, cancellationToken);
+        if (ticket == null) return NotFound();
+
+        var evento = await _context.Events.FindAsync(new object[] { ticket.EventId }, cancellationToken);
+        var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+        var payload = qrService.GerarPayloadJwt(ticketId, ticket.EventId, ticket.AssentoCodigo, userId);
+        var qrBytes = qrService.GerarQrCodePng(payload);
+
+        ViewBag.QrCodeBase64 = Convert.ToBase64String(qrBytes);
+        ViewBag.EventName = evento?.Title ?? "Evento";
+        ViewBag.SeatCode = ticket.AssentoCodigo;
+        ViewBag.TicketId = ticketId;
+
+        return View();
+    }
+
+    //====================================================================================================================
+    // B4 — Endpoint de validação de QR Code (para scanner na entrada)
+    //====================================================================================================================
+    [HttpPost("api/tickets/validate")]
+    public async Task<IActionResult> ValidateQr([FromBody] ValidateQrRequest request)
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var secret = _config["Jwt:Secret"] ?? "ChaveSuperSecretaTicketMaster2026!";
+            var key = new SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(secret));
+
+            var result = await handler.ValidateTokenAsync(request.QrPayload, new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = "ticketmaster",
+                ValidateAudience = true,
+                ValidAudience = "ticket-validator",
+                ValidateLifetime = true,
+                IssuerSigningKey = key
+            });
+
+            if (!result.IsValid)
+                return Forbid();
+
+            var tid = Guid.Parse(result.Claims["tid"].ToString()!);
+            var ticket = await _context.Tickets.FindAsync(tid);
+            if (ticket == null || ticket.Status != TicketStatus.Vendido)
+                return StatusCode(403, new { error = "TICKET_INVALIDO" });
+
+            return Ok(new { status = "ACCESS_GRANTED", seatCode = ticket.AssentoCodigo });
+        }
+        catch
+        {
+            return StatusCode(403, new { error = "INVALID_TOKEN" });
+        }
+    }
 }
+
+public record ValidateQrRequest(string QrPayload);

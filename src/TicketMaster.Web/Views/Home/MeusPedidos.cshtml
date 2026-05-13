@@ -1,0 +1,57 @@
+@using TicketMaster.Web.Controllers
+@model List<PedidoResumoView>
+@{
+    ViewData["Title"] = "Meus Pedidos";
+}
+
+<div class="container" style="padding-top:2rem;padding-bottom:4rem;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <h1 class="tm-section-title mb-0">
+            <i class="fa-regular fa-rectangle-list me-2" style="color:var(--color-accent);"></i>Meus Pedidos
+        </h1>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="tm-alert tm-alert-info">
+            <i class="fa-regular fa-face-smile me-2"></i>Você ainda não tem pedidos.
+        </div>
+    }
+    else
+    {
+        <div class="tm-card">
+            <div class="card-body" style="padding:0;">
+                <table class="tm-table">
+                    <thead>
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Data</th>
+                            <th>Itens</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            <tr>
+                                <td><span class="tm-code">@p.Id.ToString()[..8]</span></td>
+                                <td class="text-nowrap">@p.DataPedido.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@p.TotalItens ingresso(s)</td>
+                                <td><span class="tm-price">@p.Total.ToString("C2")</span></td>
+                                <td>
+                                    <span class="tm-badge @(p.Status == "Pago" ? "tm-badge-success" : p.Status == "Pendente" ? "tm-badge-primary" : p.Status == "Cancelado" ? "tm-badge-danger" : "tm-badge-violet")">
+                                        @if (p.Status == "Pago") { <i class="fa-solid fa-check me-1"></i> }
+                                        else if (p.Status == "Cancelado") { <i class="fa-solid fa-xmark me-1"></i> }
+                                        else if (p.Status == "Pendente") { <i class="fa-regular fa-clock me-1"></i> }
+                                        @p.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

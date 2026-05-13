@@ -11,7 +11,7 @@ using TicketMaster.Domain.Entities;
 namespace TicketMaster.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "AdminGeral,Admin")]
 public class RoomController : Controller
 {
     private readonly IMediator _mediator;

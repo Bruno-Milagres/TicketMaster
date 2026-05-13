@@ -4,8 +4,11 @@ obj/
 *.user
 *.suo
 
-# Variáveis de ambiente — contém senhas
-.env
+# Dispositivo reservado do Windows
+nul
+NUL
 
-# Plano de análise do projeto (documentação interna)
-PLANO-ANALISE.md
+# Variaveis de ambiente — contem senhas
+.env
+context.md
+task.md

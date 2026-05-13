@@ -1,71 +1,72 @@
-@model IEnumerable<TicketMaster.Domain.Entities.Event>
-@using System.Collections.Generic
-@using System.Linq
+@using TicketMaster.Application.Common
+@model PagedResult<TicketMaster.Domain.Entities.Event>
 
 @{
-    var eventos = Model?.ToList() ?? new List<TicketMaster.Domain.Entities.Event>();
+    var eventos = Model.Itens;
 }
 
-<section class="mb-4 mb-md-5">
-    <div class="row g-4 align-items-center">
-        <div class="col-12 col-lg-7">
-            <div class="card border-0 shadow-sm h-100 tm-hover-lift">
-                <div class="card-body p-4 p-md-5">
-                    <span class="badge text-bg-primary mb-3">TicketMaster Hub</span>
-                    <h1 class="display-5 fw-bold mb-3">Descubra o próximo espetáculo da sua agenda</h1>
-                    <p class="lead text-muted mb-4">Escolha seu evento, selecione seu assento e finalize o pagamento em poucos cliques.</p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <span class="badge rounded-pill text-bg-light border">Reserva em tempo real</span>
-                        <span class="badge rounded-pill text-bg-light border">Pagamento rápido</span>
-                        <span class="badge rounded-pill text-bg-light border">Experiência responsiva</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-lg-5">
-            <div class="card border-0 shadow-sm tm-hover-lift">
-                @* Placeholder: adicione a imagem em wwwroot/img/home-hero-evento.jpg *@
-                <img src="~/img/home-hero-evento.jpg" class="card-img-top placeholder-img" alt="Imagem promocional do evento" />
-                <div class="card-body">
-                    <h2 class="h5 mb-2">Pronto para reservar?</h2>
-                    <p class="text-muted mb-0">Explore os eventos disponíveis e garanta seu lugar.</p>
-                </div>
-            </div>
-        </div>
+@* HERO BANNER — Banner em /img/bunner com overlay escuro *@
+<section class="tm-hero">
+    <picture>
+        <img src="~/img/bunner.png" alt="Theatro" class="tm-hero-img" id="tm-hero-img" loading="eager" />
+    </picture>
+    <div class="tm-hero-overlay"></div>
+    <div class="tm-hero-content container">
+        <h1 class="tm-title-lg">Próximos Espetáculos</h1>
+        <p class="tm-subtitle">Descubra a programação do teatro. Garanta seu lugar para uma experiência inesquecível.</p>
     </div>
 </section>
 
-@if (!eventos.Any())
-{
-    <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span>Nenhum evento disponível no momento. Tente novamente em instantes.</span>
-    </div>
+@section Scripts {
+    <script>
+        document.getElementById('tm-hero-img').addEventListener('error', function() {
+            this.style.display = 'none';
+            this.parentElement.nextElementSibling.style.background = 'linear-gradient(135deg,var(--accent),var(--bg-deep))';
+        });
+    </script>
 }
-else
-{
-    <section>
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <h2 class="h4 mb-0">Eventos disponíveis</h2>
-            <span class="badge text-bg-secondary">@eventos.Count evento(s)</span>
+
+@* EVENTOS *@
+<section class="container" style="padding-top:var(--space-2xl);padding-bottom:var(--space-3xl);">
+    @if (!eventos.Any())
+    {
+        <div class="tm-alert tm-alert-warning d-flex align-items-center gap-2">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Nenhum espetáculo programado no momento.</span>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="tm-title-md mb-0">Em Cartaz</h2>
+            <span class="tm-badge tm-badge-gold">@Model.Total espetáculo(s)</span>
         </div>
 
         <div class="row g-4">
             @foreach (var evento in eventos)
             {
                 <div class="col-12 col-md-6 col-xl-4">
-                    <div class="card h-100 shadow-sm tm-hover-lift">
-                        @* Placeholder: adicione a imagem em wwwroot/img/evento-card-placeholder.jpg (ou por evento no futuro) *@
-                        <img src="~/img/evento-card-placeholder.jpg" class="card-img-top placeholder-img" alt="Imagem do evento @evento.Title" />
-                        <div class="card-body">
-                            <h3 class="h5 card-title fw-bold">@evento.Title</h3>
-                            <p class="card-text text-muted mb-3">
-                                <i class="fa-regular fa-calendar-days me-2"></i>@evento.EventDate.ToString("dd/MM/yyyy HH:mm")
-                            </p>
-                            <span class="badge text-bg-success">Ingressos disponíveis</span>
+                    <div class="tm-event-card h-100">
+                        <div class="tm-event-card-img">
+                            @if (!string.IsNullOrEmpty(evento.ImagemUrl))
+                            {
+                                <img src="@evento.ImagemUrl" alt="@evento.Title" loading="lazy" />
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-mask" style="font-size:2rem;opacity:0.3;"></i>
+                            }
                         </div>
-                        <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3">
-                            <a asp-controller="Ticket" asp-action="Index" asp-route-eventId="@evento.Id" class="btn btn-primary w-100">
+                        <div class="tm-event-card-body">
+                            <h3 class="tm-event-card-title">@evento.Title</h3>
+                            <p class="tm-event-card-date">
+                                <i class="fa-regular fa-calendar me-1"></i>
+                                @evento.EventDate.ToString("dd 'de' MMMM 'de' yyyy — HH:mm")
+                            </p>
+                            <span class="tm-badge tm-badge-success mt-2">Ingressos disponíveis</span>
+                        </div>
+                        <div class="tm-event-card-footer">
+                            <a asp-controller="Ticket" asp-action="Index" asp-route-eventId="@evento.Id" class="tm-btn tm-btn-primary w-100">
                                 Ver Ingressos
                             </a>
                         </div>
@@ -73,5 +74,25 @@ else
                 </div>
             }
         </div>
-    </section>
-}
+
+        @* PAGINAÇÃO *@
+        @if (Model.TotalPaginas > 1)
+        {
+            <nav class="tm-pagination" aria-label="Navegação">
+                <a asp-action="Index" asp-route-pagina="@(Model.Pagina - 1)"
+                   class="tm-page-link @(!Model.TemAnterior ? "disabled" : "")">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+                @for (int p = 1; p <= Model.TotalPaginas; p++)
+                {
+                    <a asp-action="Index" asp-route-pagina="@p"
+                       class="tm-page-link @(p == Model.Pagina ? "active" : "")">@p</a>
+                }
+                <a asp-action="Index" asp-route-pagina="@(Model.Pagina + 1)"
+                   class="tm-page-link @(!Model.TemProxima ? "disabled" : "")">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </nav>
+        }
+    }
+</section>

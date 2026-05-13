@@ -1,72 +1,77 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TicketMaster</title>
 
-    <script type="importmap"></script>
-
     @* Fontes *@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
 
-    @* Font Awesome  *@
+    @* Font Awesome *@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
-    @* Aplica tema antes do render para evitar flash *@
-    <script>
-        (function () {
-            var s = localStorage.getItem('tm-theme');
-            var d = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', s || d);
-        })();
-    </script>
 </head>
 <body>
-
     <header>
-        <nav class="tm-navbar navbar navbar-expand-md navbar-light">
+        <nav class="tm-navbar navbar navbar-expand-md">
             <div class="container">
-
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="fa-solid fa-ticket"></i>
                     TicketMaster
                 </a>
 
-                <button class="navbar-toggler" type="button"
+                <button class="navbar-toggler border-0" type="button"
                         data-bs-toggle="collapse" data-bs-target="#navMain"
                         aria-controls="navMain" aria-expanded="false" aria-label="Abrir menu">
-                    <i class="fa-solid fa-bars" style="color: var(--color-text);"></i>
+                    <i class="fa-solid fa-bars" style="color: var(--text-secondary);"></i>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navMain">
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="fa-regular fa-map me-1"></i>Ingressos
-                            </a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Eventos</a>
                         </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="MeusPedidos">Meus Pedidos</a>
+                            </li>
+                        }
                     </ul>
 
-                    <div class="d-flex align-items-center gap-2">
+                    <ul class="navbar-nav">
+                        @if (User.IsInRole("AdminGeral") || User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
+                                <ul class="dropdown-menu dropdown-menu-end tm-dropdown">
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="Eventos" asp-action="Index"><i class="fa-solid fa-calendar me-2"></i>Eventos</a></li>
+                                    @if (User.IsInRole("AdminGeral"))
+                                    {
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item" asp-area="Admin" asp-controller="AdminGeral" asp-action="Index"><i class="fa-solid fa-users-gear me-2"></i>Admins</a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="d-flex align-items-center gap-2 ms-2">
                         <partial name="_LoginPartial" />
                         <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema" aria-label="Alternar tema claro/escuro">
-                            <span class="icon-light"><i class="fa-solid fa-moon"></i></span>
-                            <span class="icon-dark"><i class="fa-solid fa-sun"></i></span>
+                            <i class="fa-solid fa-sun"></i>
                         </button>
                     </div>
                 </div>
-
             </div>
         </nav>
     </header>
 
-    <main role="main" class="py-4 py-md-5">
+    <main role="main" class="tm-page">
         <div class="container">
             @RenderBody()
         </div>
@@ -74,20 +79,26 @@
 
     <footer class="tm-footer">
         <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <span>
-                <i class="fa-solid fa-ticket me-1"></i>
-                &copy; @DateTime.Now.Year TicketMaster
-            </span>
-            <span class="d-inline-flex align-items-center gap-2">
-                <span class="badge bg-light text-dark border">Plataforma de ingressos</span>
-            </span>
+            <span>&copy; @DateTime.Now.Year TicketMaster — Teatro</span>
+            <span class="tm-badge tm-badge-vinho">Plataforma de Ingressos</span>
         </div>
     </footer>
+
+    @* Toast container *@
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <script>document.addEventListener('DOMContentLoaded', function () { showToast('@TempData["Sucesso"]', 'success'); });</script>
+    }
+    @if (TempData["Erro"] != null)
+    {
+        <script>document.addEventListener('DOMContentLoaded', function () { showToast('@TempData["Erro"]', 'danger'); });</script>
+    }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
 </body>
 </html>

@@ -2,87 +2,90 @@
 @model RegisterModel
 @{
     ViewData["Title"] = "Criar conta";
+    Layout = null;
 }
-
-<div class="auth-wrapper">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-10 col-lg-7 col-xl-5">
-                <div class="auth-card tm-hover-lift">
-                    <div class="text-center mb-4">
-                        <span class="badge text-bg-primary mb-2">Cadastro</span>
-                        <div class="auth-icon mb-2">
-                            <i class="fa-solid fa-user-plus"></i>
-                        </div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criar conta — TicketMaster</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="auth-body-bg">
+    <div class="auth-split">
+        <div class="auth-image-side"></div>
+        <div class="auth-form-side">
+            <div class="auth-form-card">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">
+                    <div>
                         <h1 class="auth-title">Criar sua conta</h1>
-                        <p class="auth-subtitle mb-0">Preencha os dados abaixo para se registrar</p>
+                        <p class="auth-subtitle">Preencha os dados para se registrar</p>
+                    </div>
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema" aria-label="Alternar tema claro/escuro" style="flex-shrink:0;">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                </div>
+
+                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <div asp-validation-summary="ModelOnly" class="tm-alert tm-alert-danger mb-3" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="tm-form-label">E-mail</label>
+                        <input asp-for="Input.Email" class="tm-form-control" autocomplete="username" aria-required="true" placeholder="voce@exemplo.com" />
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
                     </div>
 
-                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="Input.Email" class="form-label">E-mail</label>
-                            <input asp-for="Input.Email"
-                                   class="form-control"
-                                   autocomplete="username"
-                                   aria-required="true"
-                                   placeholder="voce@exemplo.com" />
-                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Input.Password" class="form-label">Senha</label>
-                            <input asp-for="Input.Password"
-                                   class="form-control"
-                                   autocomplete="new-password"
-                                   aria-required="true"
-                                   placeholder="••••••••" />
-                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="Input.ConfirmPassword" class="form-label">Confirmar senha</label>
-                            <input asp-for="Input.ConfirmPassword"
-                                   class="form-control"
-                                   autocomplete="new-password"
-                                   aria-required="true"
-                                   placeholder="••••••••" />
-                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
-                        </div>
-
-                        <button id="registerSubmit" type="submit" class="btn btn-primary w-100">
-                            <i class="fa-solid fa-user-plus me-2"></i>Criar conta
-                        </button>
-                    </form>
-
-                    @if ((Model.ExternalLogins?.Count ?? 0) > 0)
-                    {
-                        <div class="auth-divider">ou continue com</div>
-                        <div class="external-section d-flex flex-wrap justify-content-center">
-                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="d-flex flex-wrap justify-content-center gap-2">
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-outline-secondary" name="provider" value="@provider.Name" title="Registrar com @provider.DisplayName">
-                                        @provider.DisplayName
-                                    </button>
-                                }
-                            </form>
-                        </div>
-                    }
-
-                    <div class="auth-footer mt-3">
-                        Já tem uma conta?&nbsp;
-                        <a asp-page="./Login">
-                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Entrar
-                        </a>
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="tm-form-label">Senha</label>
+                        <input asp-for="Input.Password" class="tm-form-control" autocomplete="new-password" aria-required="true" placeholder="••••••••" />
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
                     </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Input.ConfirmPassword" class="tm-form-label">Confirmar senha</label>
+                        <input asp-for="Input.ConfirmPassword" class="tm-form-control" autocomplete="new-password" aria-required="true" placeholder="••••••••" />
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                    </div>
+
+                    <button id="registerSubmit" type="submit" class="tm-btn tm-btn-primary w-100">
+                        <i class="fa-solid fa-user-plus me-2"></i>Criar conta
+                    </button>
+                </form>
+
+                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                {
+                    <div class="auth-divider">ou continue com</div>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="d-flex flex-wrap justify-content-center gap-2">
+                            @foreach (var provider in Model.ExternalLogins!)
+                            {
+                                <button type="submit" class="tm-btn tm-btn-outline" name="provider" value="@provider.Name" title="Registrar com @provider.DisplayName">
+                                    @provider.DisplayName
+                                </button>
+                            }
+                        </form>
+                    </div>
+                }
+
+                <div class="auth-footer" style="margin-top:1.5rem;">
+                    Já tem uma conta?&nbsp;
+                    <a asp-page="./Login"><i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Entrar</a>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>

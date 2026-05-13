@@ -2,67 +2,95 @@
 @{
     ViewData["Title"] = "Gerenciar Salas";
     Layout = "_Layout";
+    var sectorLabels = new Dictionary<string, string>
+    {
+        ["PlateiaFrente"]  = "Plateia Frente",
+        ["PlateiaCentro"]  = "Plateia Centro",
+        ["PlateiaFundo"]   = "Plateia Fundo",
+        ["Frisa"]          = "Frisa (VIP)",
+        ["Camarote"]       = "Camarote (VIP)",
+        ["Balcao"]         = "Balcao",
+        ["Acessibilidade"] = "Acessibilidade",
+    };
+    var sectorColors = new Dictionary<string, string>
+    {
+        ["PlateiaFrente"]  = "#F5A623",
+        ["PlateiaCentro"]  = "#10B981",
+        ["PlateiaFundo"]   = "#3B82F6",
+        ["Frisa"]          = "#7C3AED",
+        ["Camarote"]       = "#EC4899",
+        ["Balcao"]         = "#64748B",
+        ["Acessibilidade"] = "#06B6D4",
+    };
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0"><i class="fa-solid fa-couch me-2"></i>Salas</h1>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="fa-solid fa-plus me-1"></i>Nova Sala
-    </a>
-</div>
+<div class="container tm-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="tm-section-title mb-0">
+            <i class="fa-solid fa-couch me-2" style="color:var(--accent);"></i>Teatro — Layout de Assentos
+        </h1>
+    </div>
 
-@if (TempData["Sucesso"] != null)
-{
-    <div class="alert alert-success">@TempData["Sucesso"]</div>
-}
-@if (TempData["Erro"] != null)
-{
-    <div class="alert alert-danger">@TempData["Erro"]</div>
-}
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="tm-alert tm-alert-success mb-4">@TempData["Sucesso"]</div>
+    }
+    @if (TempData["Erro"] != null)
+    {
+        <div class="tm-alert tm-alert-danger mb-4">@TempData["Erro"]</div>
+    }
 
-@if (!Model.Any())
-{
-    <div class="alert alert-warning">Nenhuma sala cadastrada.</div>
-}
-else
-{
-    <div class="row g-4">
-        @foreach (var sala in Model)
+    @if (!Model.Any())
+    {
+        <div class="tm-alert tm-alert-warning">Nenhuma sala cadastrada.</div>
+    }
+    else
+    {
+        foreach (var sala in Model)
         {
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">@sala.Name</h5>
-                        <p class="text-muted small mb-2">
-                            <i class="fa-regular fa-grid-2 me-1"></i>
-                            @sala.Layout.MaxColumns × @sala.Layout.MaxRows
-                            · @sala.Layout.Seats.Count assento(s)
-                        </p>
-                        <div class="seat-map-preview" style="display:grid;grid-template-columns:repeat(@sala.Layout.MaxColumns, 20px);gap:2px;opacity:0.7">
-                            @for (int y = 1; y <= sala.Layout.MaxRows; y++)
-                            {
-                                for (int x = 1; x <= sala.Layout.MaxColumns; x++)
-                                {
-                                    var ocupado = sala.Layout.Seats.Any(s => s.CoordX == x && s.CoordY == y);
-                                    <div style="width:18px;height:18px;border-radius:3px;background:@(ocupado ? "#1a1a1a" : "#e4e4e0")"></div>
-                                }
-                            }
+            var totalSeats   = sala.Layout.Seats.Count;
+            var byType       = sala.Layout.Seats.GroupBy(s => s.Type).ToDictionary(g => g.Key, g => g.Count());
+            var bySector     = sala.Layout.Seats.GroupBy(s => s.Sector ?? "PlateiaCentro")
+                                   .ToDictionary(g => g.Key, g => g.Count());
+
+            <div class="tm-card mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h4 style="font-family:var(--font-display);color:var(--text-primary);margin-bottom:.25rem;">
+                                <i class="fa-solid fa-landmark me-2" style="color:var(--accent);"></i>@sala.Name
+                            </h4>
+                            <span class="tm-badge tm-badge-success">
+                                <i class="fa-solid fa-couch me-1"></i>@totalSeats assentos
+                            </span>
                         </div>
                     </div>
-                    <div class="card-footer bg-transparent border-0 d-flex gap-2">
-                        <a asp-action="Edit" asp-route-id="@sala.Id" class="btn btn-sm btn-outline-primary">
-                            <i class="fa-solid fa-pen me-1"></i>Editar
-                        </a>
-                        <form asp-action="Delete" asp-route-id="@sala.Id" method="post"
-                              onsubmit="return confirm('Excluir esta sala?')">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="fa-solid fa-trash me-1"></i>Excluir
-                            </button>
-                        </form>
+
+                    @* Breakdown por tipo *@
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        @foreach (var t in byType)
+                        {
+                            <span class="tm-badge" style="background:var(--bg-hover);color:var(--text-secondary);">
+                                @t.Key: @t.Value
+                            </span>
+                        }
+                    </div>
+
+                    @* Breakdown por setor *@
+                    <div class="tm-sector-legend">
+                        @foreach (var s in bySector)
+                        {
+                            var color = sectorColors.GetValueOrDefault(s.Key, "#888");
+                            var label = sectorLabels.GetValueOrDefault(s.Key, s.Key);
+                            <div class="tm-sector-legend-item">
+                                <span class="tm-sector-dot" style="background:@color;"></span>
+                                <span class="tm-sector-name">@label</span>
+                                <span class="tm-sector-price">@s.Value assentos</span>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
         }
-    </div>
-}
+    }
+</div>

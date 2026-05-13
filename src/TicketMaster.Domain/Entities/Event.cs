@@ -10,10 +10,16 @@ public class Event
     public DateTime EventDate { get; private set; }
     public Guid RoomId { get; private set; }
     public EventStatus Status { get; private set; }
+    public string? ImagemUrl { get; private set; }
 
     //============================================================================
     // Construtor privado para o EF
     //============================================================================
+    //============================================================================
+    // Construtor privado para o EF Core (materialização via reflexão)
+    //============================================================================
+    private Event() { Title = string.Empty; }
+
     public Event(string title, DateTime eventDate, Guid roomId)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -55,4 +61,6 @@ public class Event
         Status = EventStatus.Cancelado;
         return Result.Success();
     }
+
+    public void DefinirImagem(string imagemUrl) => ImagemUrl = imagemUrl;
 }
