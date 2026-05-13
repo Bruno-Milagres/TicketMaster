@@ -267,22 +267,19 @@ app.MapStaticAssets();
 app.MapRazorPages();  // Necessário para Identity (Areas/Identity/Pages)
 
 //==============================================
-// ROTAS
+// ROTAS (área ANTES de default para geração correta de URLs)
 //==============================================
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Room}/{action=Index}/{id?}")
+    .WithStaticAssets();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 app.MapHub<TicketHub>("/ticketHub");
-
-// ==============================================
-// ÁREA ADMIN
-// ==============================================
-app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Room}/{action=Index}/{id?}")
-    .WithStaticAssets();
 
 //==============================================
 // SEED DO BANCO DE DADOS
