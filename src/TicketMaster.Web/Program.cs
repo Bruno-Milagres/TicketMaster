@@ -15,6 +15,8 @@ using TicketMaster.Infrastructure.Cache;
 using TicketMaster.Infrastructure.Data;
 using TicketMaster.Infrastructure.Repositories;
 using TicketMaster.Web.Consumers;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using TicketMaster.Web.Hubs;
 using TicketMaster.Web.Workers;
 using System.IO.Compression;
@@ -26,6 +28,11 @@ using Event = TicketMaster.Domain.Entities.Event;
 // BUILDER
 //==============================================
 var builder = WebApplication.CreateBuilder(args);
+
+//==============================================
+// LIMITE UPLOAD
+//==============================================
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = 5_242_880); // 5MB
 
 //==============================================
 // SERILOG + OPENTELEMETRY
@@ -57,10 +64,25 @@ builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
 //==============================================
-// IDENTITY
+// IDENTITY + JWT
 //==============================================
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<AppDbContext>();
+
+builder.Services.AddAuthentication()
+    .AddJwtBearer(opts =>
+    {
+        opts.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = "ticketmaster",
+            ValidateAudience = true,
+            ValidAudience = "ticketmaster-api",
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"] ?? "ChaveSuperSecretaTicketMaster2026!"))
+        };
+    });
 
 //==============================================
 // BANCO DE DADOS
@@ -148,10 +170,20 @@ builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddHostedService<TicketReaperWorker>();
 builder.Services.AddScoped<TicketMaster.Application.Interfaces.IQuotaService, TicketMaster.Infrastructure.Services.QuotaService>();
 
+// Token Service
+builder.Services.AddScoped<TicketMaster.Web.Services.TokenService>();
+builder.Services.AddScoped<TicketMaster.Web.Services.QrCodeService>();
+
+// Email Service
+builder.Services.AddScoped<TicketMaster.Application.Interfaces.IEmailService, TicketMaster.Infrastructure.Services.LogEmailService>();
+
 // MediatR + CQRS + FluentValidation
 builder.Services.AddApplication();
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssemblyContaining<Program>());
+{
+    cfg.RegisterServicesFromAssemblyContaining<Program>();
+    cfg.RegisterServicesFromAssembly(typeof(TicketMaster.Application.DependencyInjection).Assembly);
+});
 
 //==============================================
 // BUILD
