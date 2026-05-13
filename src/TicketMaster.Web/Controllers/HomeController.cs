@@ -19,9 +19,9 @@ public class HomeController : Controller
         _db = db;
     }
 
-    public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(int pagina = 1, CancellationToken cancellationToken = default)
     {
-        var eventos = await _mediator.Send(new ListarEventosAtivosQuery(), cancellationToken);
+        var eventos = await _mediator.Send(new ListarEventosAtivosQuery(pagina), cancellationToken);
         return View(eventos);
     }
 

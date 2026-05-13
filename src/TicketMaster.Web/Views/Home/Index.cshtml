@@ -1,9 +1,10 @@
-@model IEnumerable<TicketMaster.Domain.Entities.Event>
-@using System.Collections.Generic
-@using System.Linq
+@using TicketMaster.Application.Common
+@model PagedResult<TicketMaster.Domain.Entities.Event>
 
 @{
-    var eventos = Model?.ToList() ?? new List<TicketMaster.Domain.Entities.Event>();
+    var eventos = Model.Itens;
+    string? action = ViewContext.RouteData.Values["action"]?.ToString();
+    string? controller = ViewContext.RouteData.Values["controller"]?.ToString();
 }
 
 <section class="mb-4 mb-md-5">
@@ -24,7 +25,6 @@
         </div>
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm tm-hover-lift">
-                @* Placeholder: adicione a imagem em wwwroot/img/home-hero-evento.jpg *@
                 <img src="~/img/home-hero-evento.jpg" class="card-img-top placeholder-img" alt="Imagem promocional do evento" />
                 <div class="card-body">
                     <h2 class="h5 mb-2">Pronto para reservar?</h2>
@@ -47,7 +47,7 @@ else
     <section>
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h2 class="h4 mb-0">Eventos disponíveis</h2>
-            <span class="badge text-bg-secondary">@eventos.Count evento(s)</span>
+            <span class="badge text-bg-secondary">@Model.Total evento(s)</span>
         </div>
 
         <div class="row g-4">
@@ -55,7 +55,6 @@ else
             {
                 <div class="col-12 col-md-6 col-xl-4">
                     <div class="card h-100 shadow-sm tm-hover-lift">
-                        @* Placeholder: adicione a imagem em wwwroot/img/evento-card-placeholder.jpg (ou por evento no futuro) *@
                         <img src="~/img/evento-card-placeholder.jpg" class="card-img-top placeholder-img" alt="Imagem do evento @evento.Title" />
                         <div class="card-body">
                             <h3 class="h5 card-title fw-bold">@evento.Title</h3>
@@ -73,5 +72,25 @@ else
                 </div>
             }
         </div>
+
+        @if (Model.TotalPaginas > 1)
+        {
+            <nav class="mt-4" aria-label="Navegação de páginas">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(!Model.TemAnterior ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pagina="@(Model.Pagina - 1)">Anterior</a>
+                    </li>
+                    @for (int p = 1; p <= Model.TotalPaginas; p++)
+                    {
+                        <li class="page-item @(p == Model.Pagina ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@p">@p</a>
+                        </li>
+                    }
+                    <li class="page-item @(!Model.TemProxima ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pagina="@(Model.Pagina + 1)">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        }
     </section>
 }
