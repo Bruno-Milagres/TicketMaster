@@ -96,6 +96,7 @@ builder.Services.AddSignalR();
 // IDENTITY + JWT
 //==============================================
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAuthentication()
@@ -285,7 +286,16 @@ using (var scope = app.Services.CreateScope())
     {
         await context.Database.MigrateAsync(); // Aplica migrations pendentes
     }
-    await DataSeeder.SeedAsync(context);
+    var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetService<UserManager<IdentityUser>>();
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        await DataSeeder.SeedAsync(context, roleManager, userManager);
+    }
+    else
+    {
+        await DataSeeder.SeedAsync(context);
+    }
 }
 
 //==============================================

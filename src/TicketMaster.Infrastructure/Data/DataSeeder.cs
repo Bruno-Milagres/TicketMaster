@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TicketMaster.Domain.Entities;
 using TicketMaster.Infrastructure.Data;
@@ -9,9 +10,32 @@ namespace TicketMaster.Infrastructure.Data;
 /// </summary>
 public static class DataSeeder
 {
-    public static async Task SeedAsync(AppDbContext context)
+    public static async Task SeedAsync(AppDbContext context,
+        RoleManager<IdentityRole>? roleManager = null,
+        UserManager<IdentityUser>? userManager = null)
     {
         // Migration é aplicada em Program.cs — não usar EnsureCreated
+
+        // Cria role Admin e usuário admin padrão
+        if (roleManager != null && !await roleManager.RoleExistsAsync("Admin"))
+        {
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+        }
+
+        if (userManager != null && await userManager.FindByEmailAsync("admin@ticketmaster.com") == null)
+        {
+            var admin = new IdentityUser
+            {
+                UserName = "admin@ticketmaster.com",
+                Email = "admin@ticketmaster.com",
+                EmailConfirmed = true
+            };
+            var result = await userManager.CreateAsync(admin, "Admin@123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+        }
 
         if (await context.Events.AnyAsync())
             return; // Já possui dados — não semear novamente
