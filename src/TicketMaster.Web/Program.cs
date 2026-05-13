@@ -11,11 +11,15 @@ using MediatR;
 using TicketMaster.Application;
 using TicketMaster.Application.Interfaces;
 using TicketMaster.Domain.Entities;
+using TicketMaster.Infrastructure.Cache;
 using TicketMaster.Infrastructure.Data;
 using TicketMaster.Infrastructure.Repositories;
 using TicketMaster.Web.Consumers;
 using TicketMaster.Web.Hubs;
 using TicketMaster.Web.Workers;
+using System.IO.Compression;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Caching.Distributed;
 using Event = TicketMaster.Domain.Entities.Event;
 
 //==============================================
@@ -72,6 +76,34 @@ else
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 }
 
+//==============================================
+// REDIS CACHE (apenas em não-testes)
+//==============================================
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddStackExchangeRedisCache(opts =>
+    {
+        opts.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+        opts.InstanceName = "TicketMaster:";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+
+//==============================================
+// COMPRESSÃO + RESPONSE CACHING
+//==============================================
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.EnableForHttps = true;
+    opts.Providers.Add<BrotliCompressionProvider>();
+    opts.Providers.Add<GzipCompressionProvider>();
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
+builder.Services.AddResponseCaching();
+
 // ==============================================
 // MENSAGERIA (RABBITMQ + MASSTRANSIT)
 // ==============================================
@@ -97,7 +129,19 @@ builder.Services.AddMassTransit(x =>
 // INJEÇÃO DE DEPENDÊNCIA
 //==============================================
 // Repositórios
-builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+builder.Services.AddScoped<TicketRepository>();
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddScoped<ITicketRepository>(sp =>
+        new CachedTicketRepository(
+            sp.GetRequiredService<TicketRepository>(),
+            sp.GetRequiredService<IDistributedCache>()));
+}
+else
+{
+    builder.Services.AddScoped<ITicketRepository>(sp =>
+        sp.GetRequiredService<TicketRepository>());
+}
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 // Serviços de domínio
@@ -136,6 +180,8 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseHttpsRedirection();
+app.UseResponseCompression();
+app.UseResponseCaching();
 app.UseRouting();
 app.MapControllers();
 app.UseAuthentication();

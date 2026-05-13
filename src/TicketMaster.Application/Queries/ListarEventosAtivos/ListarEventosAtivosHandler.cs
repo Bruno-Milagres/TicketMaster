@@ -1,10 +1,11 @@
 using MediatR;
+using TicketMaster.Application.Common;
 using TicketMaster.Application.Interfaces;
 using TicketMaster.Domain.Entities;
 
 namespace TicketMaster.Application.Queries.ListarEventosAtivos;
 
-public sealed class ListarEventosAtivosHandler : IRequestHandler<ListarEventosAtivosQuery, IEnumerable<Event>>
+public sealed class ListarEventosAtivosHandler : IRequestHandler<ListarEventosAtivosQuery, PagedResult<Event>>
 {
     private readonly IEventRepository _eventRepository;
 
@@ -13,8 +14,16 @@ public sealed class ListarEventosAtivosHandler : IRequestHandler<ListarEventosAt
         _eventRepository = eventRepository;
     }
 
-    public async Task<IEnumerable<Event>> Handle(ListarEventosAtivosQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResult<Event>> Handle(ListarEventosAtivosQuery request, CancellationToken cancellationToken)
     {
-        return await _eventRepository.ListarEventosAtivosAsync(cancellationToken);
+        var todos = await _eventRepository.ListarEventosAtivosAsync(cancellationToken);
+        var lista = todos.ToList();
+        var total = lista.Count;
+        var itens = lista
+            .Skip((request.Pagina - 1) * request.TamanhoPagina)
+            .Take(request.TamanhoPagina)
+            .ToList();
+
+        return new PagedResult<Event>(itens, total, request.Pagina, request.TamanhoPagina);
     }
 }
