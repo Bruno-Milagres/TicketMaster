@@ -53,4 +53,41 @@ document.addEventListener('DOMContentLoaded', function () {
             img.addEventListener('error', function() { handleImageError(img); });
         }
     });
+
+    // A2 — Loading states em formulários
+    document.querySelectorAll('form[data-loading]').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            var btn = form.querySelector('[type="submit"]');
+            if (!btn || btn.disabled) return;
+            btn.disabled = true;
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Aguarde...';
+            setTimeout(function() {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalText;
+            }, 10000);
+        });
+    });
 });
+
+// A3 — Toast de feedback (substitui TempData alerts)
+function showToast(message, type) {
+    if (!message) return;
+    type = type || 'success';
+    var container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+    var id = 'toast-' + Date.now();
+    container.insertAdjacentHTML('beforeend',
+        '<div id="' + id + '" class="toast align-items-center text-bg-' + type + ' border-0" role="alert">' +
+        '<div class="d-flex"><div class="toast-body">' + message + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>');
+    var el = document.getElementById(id);
+    new bootstrap.Toast(el, { delay: 4000 }).show();
+    el.addEventListener('hidden.bs.toast', function() { el.remove(); });
+}
+window.showToast = showToast;

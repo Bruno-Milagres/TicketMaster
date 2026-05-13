@@ -48,9 +48,17 @@
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="fa-regular fa-map me-1"></i>Ingressos
+                                <i class="fa-regular fa-map me-1"></i>Eventos
                             </a>
                         </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="MeusPedidos">
+                                    <i class="fa-regular fa-rectangle-list me-1"></i>Meus Pedidos
+                                </a>
+                            </li>
+                        }
                     </ul>
 
                     <div class="d-flex align-items-center gap-2">
@@ -71,6 +79,18 @@
             @RenderBody()
         </div>
     </main>
+
+    @* Toast container para feedback (A3) *@
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <script>document.addEventListener('DOMContentLoaded', function () { showToast('@TempData["Sucesso"]', 'success'); });</script>
+    }
+    @if (TempData["Erro"] != null)
+    {
+        <script>document.addEventListener('DOMContentLoaded', function () { showToast('@TempData["Erro"]', 'danger'); });</script>
+    }
 
     <footer class="tm-footer">
         <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">

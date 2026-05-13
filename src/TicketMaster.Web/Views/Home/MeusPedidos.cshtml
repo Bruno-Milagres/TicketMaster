@@ -1,0 +1,48 @@
+@using TicketMaster.Web.Controllers
+@model List<PedidoResumoView>
+@{
+    ViewData["Title"] = "Meus Pedidos";
+}
+
+<h1 class="h3 mb-4"><i class="fa-solid fa-box me-2"></i>Meus Pedidos</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Você ainda não tem pedidos.</div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Data</th>
+                            <th>Itens</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            <tr>
+                                <td class="text-muted small">@p.Id.ToString()[..8]</td>
+                                <td class="text-nowrap small">@p.DataPedido.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@p.TotalItens ingresso(s)</td>
+                                <td class="text-nowrap">@p.Total.ToString("C2")</td>
+                                <td>
+                                    <span class="badge @(p.Status == "Pago" ? "bg-success" : p.Status == "Pendente" ? "bg-warning text-dark" : p.Status == "Cancelado" ? "bg-danger" : "bg-info")">
+                                        @p.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

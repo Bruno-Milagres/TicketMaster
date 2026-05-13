@@ -947,3 +947,43 @@ main { flex: 1; }
     border-radius: 0 var(--radius-card) var(--radius-card) 0;
     min-height: 100%;
 }
+
+/* ==============================================
+   A4 — MAPA DE ASSENTOS RESPONSIVO
+   ============================================== */
+.seat-map-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.seat-map-wrapper {
+    min-width: 400px;
+}
+
+.seat-map-grid {
+    display: inline-grid;
+    gap: 4px;
+    justify-content: center;
+}
+
+@media (max-width: 576px) {
+    .seat-map-grid .seat-btn,
+    .seat-map-grid button[class*="seat-"] {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.55rem !important;
+        margin: 1px;
+        padding: 0 !important;
+    }
+    
+    .seat-map-legend {
+        font-size: 0.75rem;
+        gap: 0.5rem !important;
+    }
+    
+    .seat-legend-dot {
+        width: 10px !important;
+        height: 10px !important;
+    }
+}
