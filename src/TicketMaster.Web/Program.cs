@@ -95,7 +95,15 @@ builder.Services.AddSignalR();
 //==============================================
 // IDENTITY + JWT
 //==============================================
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 5;
+})
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 

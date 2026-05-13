@@ -29,9 +29,11 @@ public static class DataSeeder
         var user = await userManager.FindByEmailAsync(email);
         if (user != null)
         {
-            // Garante que está na role correta
             if (!await userManager.IsInRoleAsync(user, role))
                 await userManager.AddToRoleAsync(user, role);
+            // Atualiza senha caso tenha mudado
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            await userManager.ResetPasswordAsync(user, token, password);
             return;
         }
 
@@ -43,7 +45,13 @@ public static class DataSeeder
         };
         var result = await userManager.CreateAsync(user, password);
         if (result.Succeeded)
+        {
             await userManager.AddToRoleAsync(user, role);
+        }
+        else
+        {
+            Console.WriteLine($"[SeedAdmin] Erro ao criar {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
     }
 
     /// <summary>
