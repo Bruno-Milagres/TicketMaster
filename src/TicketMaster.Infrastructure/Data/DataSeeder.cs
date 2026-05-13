@@ -11,8 +11,7 @@ public static class DataSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        // Cria o banco se não existir
-        await context.Database.EnsureCreatedAsync();
+        // Migration é aplicada em Program.cs — não usar EnsureCreated
 
         if (await context.Events.AnyAsync())
             return; // Já possui dados — não semear novamente

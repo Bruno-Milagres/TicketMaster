@@ -34,5 +34,15 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
         builder.Entity<Ticket>()
             .Property(t => t.Versao)
             .IsConcurrencyToken();
+
+        builder.Entity<TipoIngresso>()
+            .Property(t => t.Preco)
+            .HasPrecision(18, 2);
+        builder.Entity<Pedido>()
+            .Property(p => p.Total)
+            .HasPrecision(18, 2);
+        builder.Entity<ItemPedido>()
+            .Property(i => i.PrecoUnitario)
+            .HasPrecision(18, 2);
     }
 }
