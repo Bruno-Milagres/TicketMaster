@@ -949,6 +949,15 @@ main { flex: 1; }
 }
 
 /* ==============================================
+   D3 — MAPA SVG INTERATIVO
+   ============================================== */
+[data-seat].available  { fill: #198754; cursor: pointer; }
+[data-seat].available:hover { fill: #20c997; }
+[data-seat].held       { fill: #ffc107; cursor: not-allowed; }
+[data-seat].selected   { fill: #dc3545; cursor: not-allowed; }
+[data-seat].unavailable { fill: #6c757d; cursor: not-allowed; }
+
+/* ==============================================
    A4 — MAPA DE ASSENTOS RESPONSIVO
    ============================================== */
 .seat-map-container {

@@ -14,6 +14,8 @@ public sealed class Ticket
     public Guid Id { get; private set; }
     public Guid EventId { get; private set; } 
     public string AssentoCodigo { get; private set; }
+    public string? SvgId { get; private set; }
+    public string? CamaroteGroupId { get; private set; }
     public TicketStatus Status { get; private set; }
     public Guid? UsuarioId { get; private set; }
     public DateTime? DataExpiraReserva { get; private set; }

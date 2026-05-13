@@ -14,6 +14,8 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Event> Events { get; set; }
     public DbSet<Room> Rooms { get; set; }
     public DbSet<TipoIngresso> TiposIngresso { get; set; }
+    public DbSet<EventSectorPrice> EventSectorPrices { get; set; }
+    public DbSet<CamaroteGroup> CamaroteGroups { get; set; }
     public DbSet<Pedido> Pedidos { get; set; }
     public DbSet<ItemPedido> ItensPedido { get; set; }
 

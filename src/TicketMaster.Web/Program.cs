@@ -146,6 +146,7 @@ builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 // Serviços de domínio
 builder.Services.AddHostedService<TicketReaperWorker>();
+builder.Services.AddScoped<TicketMaster.Application.Interfaces.IQuotaService, TicketMaster.Infrastructure.Services.QuotaService>();
 
 // MediatR + CQRS + FluentValidation
 builder.Services.AddApplication();
