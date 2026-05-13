@@ -1,0 +1,79 @@
+@model IEnumerable<TicketMaster.Domain.Entities.Event>
+@using TicketMaster.Domain.Enums
+@{
+    ViewData["Title"] = "Eventos — Admin";
+}
+
+<div class="container" style="padding-top:2rem;padding-bottom:4rem;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="tm-section-title mb-0">
+            <i class="fa-solid fa-calendar me-2" style="color:var(--color-accent);"></i>Eventos
+        </h1>
+        <a asp-action="Create" class="tm-btn tm-btn-primary tm-btn-sm">
+            <i class="fa-solid fa-plus me-1"></i>Novo Evento
+        </a>
+    </div>
+
+    <div class="tm-card">
+        <div class="card-body" style="padding:0;">
+            <table class="tm-table">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model)
+                    {
+                        <tr>
+                            <td>@e.Title</td>
+                            <td class="text-nowrap">@e.EventDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="tm-badge @(e.Status == EventStatus.Publicado ? "tm-badge-success" : e.Status == EventStatus.Rascunho ? "tm-badge-primary" : "tm-badge-danger")">
+                                    @e.Status
+                                </span>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a asp-action="Edit" asp-route-id="@e.Id" class="tm-btn tm-btn-secondary tm-btn-sm">
+                                    <i class="fa-solid fa-edit"></i>
+                                </a>
+                                @if (e.Status == EventStatus.Rascunho)
+                                {
+                                    <form method="post" asp-action="Publicar" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@e.Id" />
+                                        <button type="submit" class="tm-btn tm-btn-success tm-btn-sm" title="Publicar">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (e.Status == EventStatus.Publicado)
+                                {
+                                    <form method="post" asp-action="Cancelar" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@e.Id" />
+                                        <button type="submit" class="tm-btn tm-btn-danger tm-btn-sm" title="Cancelar"
+                                                onclick="return confirm('Cancelar @e.Title?')">
+                                            <i class="fa-solid fa-ban"></i>
+                                        </button>
+                                    </form>
+                                }
+                                <form method="post" asp-action="Delete" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@e.Id" />
+                                    <button type="submit" class="tm-btn tm-btn-danger tm-btn-sm" title="Excluir"
+                                            onclick="return confirm('Excluir @e.Title?')">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

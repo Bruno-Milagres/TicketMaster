@@ -1,0 +1,39 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ticketmaster-rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ticketmaster-sql
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-TicketMasterDev2026!} # Sobrescreva via .env ou variável de ambiente em produção
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  redis:
+    image: redis:7-alpine
+    container_name: ticketmaster-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  rabbitmq_data:
+    name: ticketmaster_rabbit_data
+  sqlserver_data:
+    name: ticketmaster_sql_data
+  redis_data:
+    name: ticketmaster_redis_data

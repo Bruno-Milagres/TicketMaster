@@ -1,0 +1,165 @@
+@model IEnumerable<TicketMaster.Domain.Entities.Ticket>
+@using System.Text.Json
+@using System.Linq
+
+@{
+    ViewData["Title"] = "Mapa de Assentos";
+    var roomLayout = ViewBag.RoomLayout as TicketMaster.Domain.Entities.Room.RoomLayout;
+}
+
+<div class="tm-seat-map-page">
+    @* Header *@
+    <div class="tm-seat-map-header">
+        <div class="container">
+            <span class="tm-badge tm-badge-violet mb-3">
+                <i class="fa-regular fa-map me-1"></i>Mapa de Assentos
+            </span>
+            <h1>@ViewBag.EventName</h1>
+            <div class="event-name">
+                <i class="fa-regular fa-calendar me-1"></i>Selecione seu assento
+            </div>
+        </div>
+    </div>
+
+    @* Palco *@
+    <div class="tm-stage">
+        <div class="tm-stage-shape"></div>
+        <div class="tm-stage-label">Palco</div>
+    </div>
+
+    @* Legenda *@
+    <div class="tm-legend">
+        <span class="tm-legend-item">
+            <span class="tm-legend-dot" style="background:var(--color-green);"></span>Disponível
+        </span>
+        <span class="tm-legend-item">
+            <span class="tm-legend-dot" style="background:var(--color-accent);"></span>Reservado
+        </span>
+        <span class="tm-legend-item">
+            <span class="tm-legend-dot" style="background:var(--color-danger);opacity:0.5;"></span>Vendido
+        </span>
+        <span class="tm-legend-item">
+            <span class="tm-legend-dot" style="background:#fff;"></span>Minha Reserva
+        </span>
+    </div>
+
+    @* Grid de Assentos *@
+    <div class="container">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="tm-alert tm-alert-warning d-flex align-items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>Nenhum ingresso foi configurado para este evento.</span>
+            </div>
+        }
+        else
+        {
+            <div class="tm-seat-grid-wrapper">
+                <div id="seat-map" class="tm-seat-grid"></div>
+            </div>
+        }
+
+        @* Info de status *@
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-3 mb-4">
+            <span class="tm-badge tm-badge-success"><i class="fa-regular fa-circle me-1"></i>Disponível</span>
+            <span class="tm-badge tm-badge-primary"><i class="fa-regular fa-clock me-1"></i>Reservado</span>
+            <span class="tm-badge tm-badge-danger"><i class="fa-solid fa-xmark me-1"></i>Vendido</span>
+        </div>
+    </div>
+
+    @* Painel de seleção (aparece quando um assento é clicado) *@
+    <div class="tm-selection-panel" id="selection-panel">
+        <div class="tm-selection-info">
+            <span class="tm-selection-seat" id="selected-seat"></span>
+            <span class="tm-selection-price">Selecione um assento disponível</span>
+        </div>
+        <button class="tm-btn tm-btn-primary" id="btn-reservar" onclick="reservarAssentoSelecionado()">
+            <i class="fa-regular fa-circle-check me-1"></i>Reservar
+        </button>
+    </div>
+</div>
+
+<environment include="Development">
+    <script src="~/js/seat-map.js" asp-append-version="true"></script>
+</environment>
+<environment exclude="Development">
+    <script src="~/js/seat-map.min.js" asp-append-version="true"></script>
+</environment>
+
+@section Scripts {
+    <script>
+        var eventId = '@ViewBag.EventId';
+        var currentUserId = '@ViewBag.CurrentUserId';
+        var roomLayout = @Html.Raw(roomLayout != null ? JsonSerializer.Serialize(roomLayout) : "null");
+        var tickets = @Html.Raw(JsonSerializer.Serialize(Model?.Select(t => new {
+            t.Id, t.AssentoCodigo, t.EventId, t.Status, t.UsuarioId, t.DataExpiraReserva
+        })));
+        var selectedSeat = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderSeatMap();
+        });
+
+        function renderSeatMap() {
+            var grid = document.getElementById('seat-map');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            var seats = tickets || [];
+            var cols = roomLayout ? roomLayout.maxColumns || 8 : 8;
+
+            grid.style.gridTemplateColumns = 'repeat(' + cols + ', 36px)';
+
+            seats.forEach(function(ticket) {
+                var btn = document.createElement('button');
+                btn.className = 'tm-seat-btn';
+                btn.dataset.codigo = ticket.assentoCodigo;
+                btn.dataset.id = ticket.id;
+                btn.textContent = ticket.assentoCodigo;
+
+                var isMine = ticket.usuarioId === currentUserId && ticket.status === 1;
+
+                if (ticket.status === 0) {
+                    btn.className += ' seat-disponivel';
+                } else if (ticket.status === 1) {
+                    btn.className += isMine ? ' seat-selecionado' : ' seat-reservado';
+                    if (!isMine) btn.disabled = true;
+                } else {
+                    btn.className += ' seat-vendido';
+                    btn.disabled = true;
+                }
+
+                if (ticket.status === 0) {
+                    btn.addEventListener('click', function() {
+                        selectSeat(ticket);
+                    });
+                }
+
+                grid.appendChild(btn);
+            });
+        }
+
+        function selectSeat(ticket) {
+            // Remove seleção anterior
+            document.querySelectorAll('.seat-selecionado').forEach(function(el) {
+                el.className = 'tm-seat-btn seat-disponivel';
+            });
+
+            selectedSeat = ticket;
+            var btn = document.querySelector('[data-codigo="' + ticket.assentoCodigo + '"]');
+            if (btn) btn.className = 'tm-seat-btn seat-selecionado';
+
+            document.getElementById('selected-seat').textContent = 'Assento ' + ticket.assentoCodigo;
+            document.getElementById('selection-panel').classList.add('active');
+        }
+
+        function reservarAssentoSelecionado() {
+            if (!selectedSeat) return;
+            var form = document.createElement('form');
+            form.method = 'post';
+            form.action = '/Ticket/Reservar?assentoCodigo=' + selectedSeat.assentoCodigo + '&eventId=' + eventId;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+}

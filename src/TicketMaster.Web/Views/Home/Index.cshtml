@@ -1,0 +1,91 @@
+@using TicketMaster.Application.Common
+@model PagedResult<TicketMaster.Domain.Entities.Event>
+
+@{
+    var eventos = Model.Itens;
+}
+
+@* HERO BANNER — Banner em /img/bunner com overlay escuro *@
+<section class="tm-hero">
+    <picture>
+        <img src="~/img/bunner" alt="Theatro" class="tm-hero-img"
+             onerror="this.style.display='none';this.parentElement.nextElementSibling.style.background='linear-gradient(135deg,var(--accent),var(--bg-deep))';"
+             loading="eager" />
+    </picture>
+    <div class="tm-hero-overlay"></div>
+    <div class="tm-hero-content container">
+        <h1 class="tm-title-lg">Próximos Espetáculos</h1>
+        <p class="tm-subtitle">Descubra a programação do teatro. Garanta seu lugar para uma experiência inesquecível.</p>
+    </div>
+</section>
+
+@* EVENTOS *@
+<section class="container" style="padding-top:var(--space-2xl);padding-bottom:var(--space-3xl);">
+    @if (!eventos.Any())
+    {
+        <div class="tm-alert tm-alert-warning d-flex align-items-center gap-2">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Nenhum espetáculo programado no momento.</span>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="tm-title-md mb-0">Em Cartaz</h2>
+            <span class="tm-badge tm-badge-gold">@Model.Total espetáculo(s)</span>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var evento in eventos)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="tm-event-card h-100">
+                        <div class="tm-event-card-img">
+                            @if (!string.IsNullOrEmpty(evento.ImagemUrl))
+                            {
+                                <img src="@evento.ImagemUrl" alt="@evento.Title" loading="lazy" />
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-mask" style="font-size:2rem;opacity:0.3;"></i>
+                            }
+                        </div>
+                        <div class="tm-event-card-body">
+                            <h3 class="tm-event-card-title">@evento.Title</h3>
+                            <p class="tm-event-card-date">
+                                <i class="fa-regular fa-calendar me-1"></i>
+                                @evento.EventDate.ToString("dd 'de' MMMM 'de' yyyy — HH:mm")
+                            </p>
+                            <span class="tm-badge tm-badge-success mt-2">Ingressos disponíveis</span>
+                        </div>
+                        <div class="tm-event-card-footer">
+                            <a asp-controller="Ticket" asp-action="Index" asp-route-eventId="@evento.Id" class="tm-btn tm-btn-primary w-100">
+                                Ver Ingressos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* PAGINAÇÃO *@
+        @if (Model.TotalPaginas > 1)
+        {
+            <nav class="tm-pagination" aria-label="Navegação">
+                <a asp-action="Index" asp-route-pagina="@(Model.Pagina - 1)"
+                   class="tm-page-link @(!Model.TemAnterior ? "disabled" : "")">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+                @for (int p = 1; p <= Model.TotalPaginas; p++)
+                {
+                    <a asp-action="Index" asp-route-pagina="@p"
+                       class="tm-page-link @(p == Model.Pagina ? "active" : "")">@p</a>
+                }
+                <a asp-action="Index" asp-route-pagina="@(Model.Pagina + 1)"
+                   class="tm-page-link @(!Model.TemProxima ? "disabled" : "")">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </nav>
+        }
+    }
+</section>

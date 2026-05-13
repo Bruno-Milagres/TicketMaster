@@ -1,0 +1,87 @@
+@model TicketMaster.Domain.Entities.Event
+@{
+    ViewData["Title"] = "Editar Evento";
+}
+
+<h1 class="h4 mb-3"><i class="fa-solid fa-edit me-2"></i>Editar Evento</h1>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" asp-action="Edit">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Título</label>
+                            <input name="Title" value="@Model.Title" class="form-control" required />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Data do Evento</label>
+                            <input name="EventDate" value="@Model.EventDate.ToString("yyyy-MM-ddTHH:mm")" class="form-control" type="datetime-local" required />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Sala</label>
+                            <select name="roomId" asp-items="ViewBag.Salas" class="form-select" required></select>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-save me-1"></i>Salvar
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary ms-2">Voltar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <h5 class="mb-3">Imagem do Evento</h5>
+                @if (!string.IsNullOrEmpty(Model.ImagemUrl))
+                {
+                    <img src="@Model.ImagemUrl" class="img-fluid rounded mb-3" alt="Imagem do evento" />
+                }
+                else
+                {
+                    <div class="img-fallback d-flex flex-column align-items-center justify-content-center rounded mb-3" style="height:150px;">
+                        <i class="fa-solid fa-image fa-3x mb-2"></i>
+                        <span class="small">Sem imagem</span>
+                    </div>
+                }
+                <form method="post" asp-action="UploadImagem" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="eventId" value="@Model.Id" />
+                    <input type="file" name="imagemEvento" class="form-control form-control-sm mb-2" accept=".jpg,.jpeg,.png,.webp" />
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fa-solid fa-upload me-1"></i>Upload
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body p-4">
+                <h5 class="mb-3">Status</h5>
+                <p>
+                    <span class="badge @(Model.Status == TicketMaster.Domain.Enums.EventStatus.Publicado ? "bg-success" : Model.Status == TicketMaster.Domain.Enums.EventStatus.Rascunho ? "bg-warning text-dark" : "bg-danger") fs-6">
+                        @Model.Status
+                    </span>
+                </p>
+                @if (Model.Status == TicketMaster.Domain.Enums.EventStatus.Rascunho)
+                {
+                    <form method="post" asp-action="Publicar">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            <i class="fa-solid fa-check me-1"></i>Publicar Evento
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

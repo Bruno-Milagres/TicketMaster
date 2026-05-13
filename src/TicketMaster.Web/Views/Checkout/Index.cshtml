@@ -1,0 +1,102 @@
+@{
+    ViewData["Title"] = "Finalizar Compra";
+}
+
+<div class="container" style="padding-top:2rem;padding-bottom:4rem;">
+    @* Steps *@
+    <div class="tm-steps">
+        <div class="tm-step completed">
+            <div class="tm-step-number"><i class="fa-solid fa-check"></i></div>
+            <div class="tm-step-label">Carrinho</div>
+        </div>
+        <div class="tm-step active">
+            <div class="tm-step-number">2</div>
+            <div class="tm-step-label">Pagamento</div>
+        </div>
+        <div class="tm-step">
+            <div class="tm-step-number">3</div>
+            <div class="tm-step-label">Confirmação</div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-7">
+            <div class="tm-card">
+                <div class="card-body" style="padding:2rem;">
+                    <h2 class="tm-card-title mb-4">
+                        <i class="fa-regular fa-credit-card me-2" style="color:var(--color-accent);"></i>Dados do comprador
+                    </h2>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="tm-alert tm-alert-danger mb-4">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <p class="mb-0">@error.ErrorMessage</p>
+                            }
+                        </div>
+                    }
+
+                    <form method="post" data-loading>
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="tm-form-label">Nome completo</label>
+                                <input type="text" name="clienteNome" class="tm-form-control" required placeholder="Seu nome" />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="tm-form-label">E-mail</label>
+                                <input type="email" name="clienteEmail" class="tm-form-control" required placeholder="seu@email.com" />
+                            </div>
+                        </div>
+                        <input type="hidden" name="itensJson" id="itensJson" />
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="tm-btn tm-btn-primary tm-btn-lg">
+                                <i class="fa-regular fa-circle-check me-1"></i>Confirmar Pedido
+                            </button>
+                            <a href="/Carrinho" class="tm-btn tm-btn-secondary">Voltar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="tm-card" style="position:sticky;top:calc(var(--navbar-height) + 1rem);">
+                <div class="card-body" style="padding:2rem;">
+                    <h3 class="tm-card-title mb-3">
+                        <i class="fa-regular fa-rectangle-list me-2" style="color:var(--color-accent);"></i>Resumo
+                    </h3>
+                    <div id="checkout-resumo">
+                        <p class="tm-label">Nenhum item no carrinho</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var itens = JSON.parse(localStorage.getItem('tm-carrinho') || '[]');
+            document.getElementById('itensJson').value = JSON.stringify(itens);
+
+            var resumo = document.getElementById('checkout-resumo');
+            if (itens.length > 0) {
+                var html = '<ul style="list-style:none;padding:0;margin:0;">';
+                var total = 0;
+                itens.forEach(function(i) {
+                    html += '<li style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--color-border);">' +
+                        '<span>' + i.nomeIngresso + ' x' + i.quantidade + '</span>' +
+                        '<span class="tm-price">R$ ' + (i.preco * i.quantidade).toFixed(2) + '</span></li>';
+                    total += i.preco * i.quantidade;
+                });
+                html += '<li style="display:flex;justify-content:space-between;padding:0.75rem 0;font-weight:700;">' +
+                    '<span>Total</span><span class="tm-price-large">R$ ' + total.toFixed(2) + '</span></li>';
+                html += '</ul>';
+                resumo.innerHTML = html;
+            }
+        });
+    </script>
+}

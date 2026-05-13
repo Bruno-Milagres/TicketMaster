@@ -1,0 +1,14 @@
+.vs/
+bin/
+obj/
+*.user
+*.suo
+
+# Dispositivo reservado do Windows
+nul
+NUL
+
+# Variaveis de ambiente — contem senhas
+.env
+context.md
+task.md

@@ -1,0 +1,73 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Entrar";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entrar — TicketMaster</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="auth-body-bg">
+    <div class="auth-split">
+        @* Lado esquerdo — Imagem do teatro *@
+        <div class="auth-image-side"></div>
+
+        @* Lado direito — Formulário *@
+        <div class="auth-form-side">
+            <div class="auth-form-card">
+                <h1 class="auth-title">Bem-vindo ao Theatro</h1>
+                <p class="auth-subtitle">Entre com sua conta para continuar</p>
+
+                <form id="account" method="post" autocomplete="on">
+                    <div asp-validation-summary="ModelOnly" class="tm-alert tm-alert-danger mb-3" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="tm-form-label">E-mail</label>
+                        <input asp-for="Input.Email" class="tm-form-control" autocomplete="username" aria-required="true" placeholder="voce@exemplo.com" />
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="tm-form-label">Senha</label>
+                        <input asp-for="Input.Password" class="tm-form-control" autocomplete="current-password" aria-required="true" placeholder="••••••••" />
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" asp-for="Input.RememberMe" />
+                        <label class="form-check-label" asp-for="Input.RememberMe" style="color:var(--text-secondary);font-size:0.85rem;">Lembrar minha conta</label>
+                    </div>
+
+                    <button id="login-submit" type="submit" class="tm-btn tm-btn-primary w-100">
+                        <i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Entrar
+                    </button>
+                </form>
+
+                <div class="auth-divider">ou</div>
+
+                <div class="auth-footer">
+                    Não tem uma conta?&nbsp;
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Registre-se</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>
