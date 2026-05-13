@@ -11,12 +11,9 @@ namespace TicketMaster.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Status",
-                table: "Events",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            // Events table already exists (created by EnsureCreatedAsync)
+            // Status column already exists on Events
+            // This migration adds the new tables from sprints B/C/D/E
 
             migrationBuilder.CreateTable(
                 name: "Pedidos",
@@ -100,10 +97,6 @@ namespace TicketMaster.Infrastructure.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Pedidos");
-
-            migrationBuilder.DropColumn(
-                name: "Status",
-                table: "Events");
         }
     }
 }

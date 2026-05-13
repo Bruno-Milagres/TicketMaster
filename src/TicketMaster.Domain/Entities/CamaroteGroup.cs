@@ -11,7 +11,7 @@ public class CamaroteGroup
 
     public Event? Event { get; private set; }
 
-    private CamaroteGroup() { Nome = string.Empty; }
+    private CamaroteGroup() { Nome = string.Empty; Id = string.Empty; }
 
     public CamaroteGroup(Guid eventId, string nome, string id)
     {
