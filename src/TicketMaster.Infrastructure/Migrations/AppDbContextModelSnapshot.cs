@@ -224,6 +224,25 @@ namespace TicketMaster.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("TicketMaster.Domain.Entities.CamaroteGroup", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("CamaroteGroups");
+                });
+
             modelBuilder.Entity("TicketMaster.Domain.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -232,6 +251,9 @@ namespace TicketMaster.Infrastructure.Migrations
 
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ImagemUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("RoomId")
                         .HasColumnType("uniqueidentifier");
@@ -248,6 +270,36 @@ namespace TicketMaster.Infrastructure.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("TicketMaster.Domain.Entities.EventSectorPrice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MaxQuota")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Sector")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("EventSectorPrices");
+                });
+
             modelBuilder.Entity("TicketMaster.Domain.Entities.ItemPedido", b =>
                 {
                     b.Property<Guid>("Id")
@@ -262,6 +314,7 @@ namespace TicketMaster.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("PrecoUnitario")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Quantidade")
@@ -296,6 +349,7 @@ namespace TicketMaster.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UsuarioId")
@@ -304,6 +358,56 @@ namespace TicketMaster.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Pedidos");
+                });
+
+            modelBuilder.Entity("TicketMaster.Domain.Entities.PrecoHistorico", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AlteradoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PrecoAnterior")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PrecoNovo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("TipoIngressoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PrecosHistoricos");
+                });
+
+            modelBuilder.Entity("TicketMaster.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("TicketMaster.Domain.Entities.Room", b =>
@@ -331,6 +435,9 @@ namespace TicketMaster.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CamaroteGroupId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime?>("DataExpiraReserva")
                         .HasColumnType("datetime2");
 
@@ -340,6 +447,9 @@ namespace TicketMaster.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<string>("SvgId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid?>("UsuarioId")
                         .HasColumnType("uniqueidentifier");
 
@@ -348,6 +458,8 @@ namespace TicketMaster.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CamaroteGroupId");
 
                     b.ToTable("Tickets");
                 });
@@ -366,6 +478,7 @@ namespace TicketMaster.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Preco")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("QuantidadeDisponivel")
@@ -427,6 +540,28 @@ namespace TicketMaster.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TicketMaster.Domain.Entities.CamaroteGroup", b =>
+                {
+                    b.HasOne("TicketMaster.Domain.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("TicketMaster.Domain.Entities.EventSectorPrice", b =>
+                {
+                    b.HasOne("TicketMaster.Domain.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("TicketMaster.Domain.Entities.ItemPedido", b =>
@@ -500,6 +635,14 @@ namespace TicketMaster.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TicketMaster.Domain.Entities.Ticket", b =>
+                {
+                    b.HasOne("TicketMaster.Domain.Entities.CamaroteGroup", null)
+                        .WithMany("Assentos")
+                        .HasForeignKey("CamaroteGroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("TicketMaster.Domain.Entities.TipoIngresso", b =>
                 {
                     b.HasOne("TicketMaster.Domain.Entities.Event", "Evento")
@@ -509,6 +652,11 @@ namespace TicketMaster.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Evento");
+                });
+
+            modelBuilder.Entity("TicketMaster.Domain.Entities.CamaroteGroup", b =>
+                {
+                    b.Navigation("Assentos");
                 });
 
             modelBuilder.Entity("TicketMaster.Domain.Entities.Pedido", b =>

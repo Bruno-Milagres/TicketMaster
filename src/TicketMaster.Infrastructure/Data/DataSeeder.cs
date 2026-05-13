@@ -1,46 +1,60 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TicketMaster.Domain.Entities;
-using TicketMaster.Infrastructure.Data;
 
 namespace TicketMaster.Infrastructure.Data;
 
-/// <summary>
-/// Responsável por semear o banco de dados com dados iniciais (salas, eventos e ingressos).
-/// </summary>
 public static class DataSeeder
 {
-    public static async Task SeedAsync(AppDbContext context,
-        RoleManager<IdentityRole>? roleManager = null,
-        UserManager<IdentityUser>? userManager = null)
+    /// <summary>
+    /// Cria roles e administradores no startup (sempre executa).
+    /// </summary>
+    public static async Task SeedAdminAsync(RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
     {
-        // Migration é aplicada em Program.cs — não usar EnsureCreated
-
-        // Cria role Admin e usuário admin padrão
-        if (roleManager != null && !await roleManager.RoleExistsAsync("Admin"))
+        // Cria as roles se não existirem
+        foreach (var role in new[] { "AdminGeral", "Admin" })
         {
-            await roleManager.CreateAsync(new IdentityRole("Admin"));
+            if (!await roleManager.RoleExistsAsync(role))
+                await roleManager.CreateAsync(new IdentityRole(role));
         }
 
-        if (userManager != null && await userManager.FindByEmailAsync("admin@ticketmaster.com") == null)
+        // Admin Geral — acesso total
+        await EnsureUserAsync(userManager, "admin@ticketmaster.com", "admin", "AdminGeral");
+        // Admin comum — acesso limitado
+        await EnsureUserAsync(userManager, "admin2@ticketmaster.com", "admin", "Admin");
+    }
+
+    private static async Task EnsureUserAsync(UserManager<IdentityUser> userManager, string email, string password, string role)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        if (user != null)
         {
-            var admin = new IdentityUser
-            {
-                UserName = "admin@ticketmaster.com",
-                Email = "admin@ticketmaster.com",
-                EmailConfirmed = true
-            };
-            var result = await userManager.CreateAsync(admin, "Admin@123");
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(admin, "Admin");
-            }
+            // Garante que está na role correta
+            if (!await userManager.IsInRoleAsync(user, role))
+                await userManager.AddToRoleAsync(user, role);
+            return;
         }
 
+        user = new IdentityUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true
+        };
+        var result = await userManager.CreateAsync(user, password);
+        if (result.Succeeded)
+            await userManager.AddToRoleAsync(user, role);
+    }
+
+    /// <summary>
+    /// Popula dados de demonstração (salas, eventos, ingressos).
+    /// Executa apenas se o banco estiver vazio.
+    /// </summary>
+    public static async Task SeedDemoDataAsync(AppDbContext context)
+    {
         if (await context.Events.AnyAsync())
-            return; // Já possui dados — não semear novamente
+            return;
 
-        // 1. Criamos o Layout da Sala (3x3 com um corredor no meio)
         var layout = new Room.RoomLayout
         {
             MaxColumns = 3,
@@ -54,16 +68,13 @@ public static class DataSeeder
             }
         };
 
-        // 2. Criamos a Sala
         var sala = new Room("Cine Master - Sala 01", layout);
         context.Rooms.Add(sala);
 
-        // 3. Criamos o Evento vinculado à Sala e publicamos
         var show = new Event("O Retorno do Tech Lead", DateTime.UtcNow.AddDays(7), sala.Id);
         show.Publicar();
         context.Events.Add(show);
 
-        // 4. Criamos os Ingressos vinculados ao Evento
         context.Tickets.AddRange(
             new Ticket(show.Id, "A1"),
             new Ticket(show.Id, "A3"),

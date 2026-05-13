@@ -1,0 +1,74 @@
+@model IEnumerable<TicketMaster.Domain.Entities.Event>
+@{
+    ViewData["Title"] = "Eventos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0"><i class="fa-solid fa-calendar me-2"></i>Eventos</h1>
+    <a asp-action="Create" class="btn btn-success btn-sm">
+        <i class="fa-solid fa-plus me-1"></i>Novo Evento
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Título</th>
+                    <th>Data</th>
+                    <th>Status</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>@e.Title</td>
+                        <td class="text-nowrap">@e.EventDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <span class="badge @(e.Status == TicketMaster.Domain.Enums.EventStatus.Publicado ? "bg-success" : e.Status == TicketMaster.Domain.Enums.EventStatus.Rascunho ? "bg-warning text-dark" : "bg-danger")">
+                                @e.Status
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Edit" asp-route-id="@e.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            @if (e.Status == TicketMaster.Domain.Enums.EventStatus.Rascunho)
+                            {
+                                <form method="post" asp-action="Publicar" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@e.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Publicar">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+                            }
+                            @if (e.Status == TicketMaster.Domain.Enums.EventStatus.Publicado)
+                            {
+                                <form method="post" asp-action="Cancelar" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@e.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Cancelar"
+                                            onclick="return confirm('Cancelar @e.Title?')">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+                                </form>
+                            }
+                            <form method="post" asp-action="Delete" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@e.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir"
+                                        onclick="return confirm('Excluir @e.Title?')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -61,6 +61,25 @@
                         }
                     </ul>
 
+                    <ul class="navbar-nav">
+                        @if (User.IsInRole("AdminGeral") || User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-shield-halved me-1"></i>Admin
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="Eventos" asp-action="Index"><i class="fa-solid fa-calendar me-2"></i>Eventos</a></li>
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="Room" asp-action="Index"><i class="fa-solid fa-door-open me-2"></i>Salas</a></li>
+                                    @if (User.IsInRole("AdminGeral"))
+                                    {
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item" asp-area="Admin" asp-controller="AdminGeral" asp-action="Index"><i class="fa-solid fa-users-gear me-2"></i>Admins</a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
                     <div class="d-flex align-items-center gap-2">
                         <partial name="_LoginPartial" />
                         <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema" aria-label="Alternar tema claro/escuro">

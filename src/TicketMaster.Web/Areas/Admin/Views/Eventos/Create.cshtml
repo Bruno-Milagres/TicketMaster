@@ -1,0 +1,36 @@
+@model TicketMaster.Domain.Entities.Event
+@{
+    ViewData["Title"] = "Criar Evento";
+}
+
+<h1 class="h4 mb-3"><i class="fa-solid fa-plus me-2"></i>Novo Evento</h1>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <form method="post" asp-action="Create">
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Título</label>
+                    <input asp-for="Title" class="form-control" required />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Data do Evento</label>
+                    <input asp-for="EventDate" class="form-control" type="datetime-local" required />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Sala</label>
+                    <select name="roomId" asp-items="ViewBag.Salas" class="form-select" required>
+                        <option value="">— Selecione —</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-check me-1"></i>Criar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>

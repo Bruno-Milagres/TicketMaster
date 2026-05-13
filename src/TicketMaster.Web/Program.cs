@@ -282,19 +282,14 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
     if (!app.Environment.IsEnvironment("Testing"))
     {
-        await context.Database.MigrateAsync(); // Aplica migrations pendentes
-    }
-    var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetService<UserManager<IdentityUser>>();
-    if (!app.Environment.IsEnvironment("Testing"))
-    {
-        await DataSeeder.SeedAsync(context, roleManager, userManager);
-    }
-    else
-    {
-        await DataSeeder.SeedAsync(context);
+        await context.Database.MigrateAsync();
+        await DataSeeder.SeedAdminAsync(roleManager, userManager);
+        await DataSeeder.SeedDemoDataAsync(context);
     }
 }
 

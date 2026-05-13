@@ -976,6 +976,40 @@ main { flex: 1; }
     justify-content: center;
 }
 
+/* ==============================================
+   FIX — TEMA ESCURO + TOGGLE VISÍVEL
+   ============================================== */
+[data-theme="dark"] .navbar-nav .nav-link,
+[data-theme="dark"] .navbar-nav .dropdown-toggle {
+    color: #e0e0e0 !important;
+}
+[data-theme="dark"] .navbar-nav .nav-link:hover,
+[data-theme="dark"] .navbar-nav .dropdown-toggle:hover {
+    color: #ffffff !important;
+}
+[data-theme="dark"] .navbar-brand {
+    color: #e0e0e0 !important;
+}
+[data-theme="dark"] .btn-theme-toggle {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.20);
+    color: #fff;
+}
+.btn-theme-toggle {
+    background: rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    color: var(--color-text);
+    font-size: 1rem;
+}
+
 @media (max-width: 576px) {
     .seat-map-grid .seat-btn,
     .seat-map-grid button[class*="seat-"] {
