@@ -182,13 +182,17 @@ public class TicketController : Controller
 
         if (resultado.IsSuccess)
         {
-            // Notificação SignalR enviada pelo ReservaCanceladaEventHandler
             TempData["Sucesso"] = "Sua reserva foi cancelada e o assento está livre novamente.";
         }
         else
         {
             TempData["Erro"] = resultado.ErrorMessage;
         }
+
+        // Se veio da página de pagamento, volta pra lá
+        var returnUrl = Request.Headers["Referer"].ToString();
+        if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("/Ticket/PagarMultiplos"))
+            return RedirectToAction(nameof(PagarMultiplos), new { eventId });
 
         return RedirectToAction("Index", new { eventId });
     }
