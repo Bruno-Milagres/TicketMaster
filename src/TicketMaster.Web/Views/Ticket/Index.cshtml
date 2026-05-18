@@ -291,68 +291,207 @@
     }
 
     // ---------------------------------------------------------------
-    // Seleciona assento no mapa
+    // Identifica minhas reservas ativas
+    // ---------------------------------------------------------------
+    function findMyReservations() {
+        myReservations = tickets.filter(function(t) {
+            return t.usuarioId === currentUserId && t.status === 1;
+        });
+        return myReservations;
+    }
+
+    // ---------------------------------------------------------------
+    // Atualiza barra de pagamento fixa (se tenho reservas sem clicar)
+    // ---------------------------------------------------------------
+    function updateMyReservationBar() {
+        var my = findMyReservations();
+        var bar = document.getElementById('my-reservation-bar');
+        if (!bar) return;
+        if (selectedSeats.length > 0) { bar.style.display = 'none'; return; }
+        if (my.length > 0) {
+            bar.style.display = 'block';
+            document.getElementById('my-reservation-count').textContent = my.length + ' reserva(s) ativa(s)';
+        } else { bar.style.display = 'none'; }
+    }
+
+    // ---------------------------------------------------------------
+    // Adiciona/remove assento da multi-seleção
+    // ---------------------------------------------------------------
+    function toggleSeatSelection(ticket, code, sector) {
+        var idx = selectedSeats.indexOf(code);
+        var rect = document.getElementById(code);
+        if (idx >= 0) {
+            selectedSeats.splice(idx, 1);
+            delete selectedTicketObjects[code];
+            if (rect) applySvgState(rect, 'disponivel', sector);
+        } else {
+            selectedSeats.push(code);
+            selectedTicketObjects[code] = { ticket: ticket, code: code, sector: sector, price: getPriceForSeat(code, 0) };
+            if (rect) applySvgState(rect, 'selecionado', sector);
+        }
+        updateSelectionPanel();
+        updateMyReservationBar();
+    }
+
+    // ---------------------------------------------------------------
+    // Atualiza painel inferior
+    // ---------------------------------------------------------------
+    function updateSelectionPanel() {
+        var listEl = document.getElementById('selected-seats-list');
+        var panel = document.getElementById('selection-panel');
+        var priceEl = document.getElementById('selected-price');
+        var sectorEl = document.getElementById('selected-sector');
+        var catSelect = document.getElementById('ticket-category');
+        var catLabel = document.querySelector('label[for="ticket-category"]');
+        var btnReservar = document.getElementById('btn-reservar');
+        var btnPagar = document.getElementById('btn-pagar-minha');
+        var btnCancelar = document.getElementById('btn-cancelar-minha');
+
+        if (!listEl) return;
+
+        if (selectedSeats.length === 0) {
+            listEl.innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem;">Clique em um assento</span>';
+            sectorEl.textContent = '';
+            priceEl.textContent = '';
+            var my = findMyReservations();
+            if (my.length > 0) {
+                btnReservar.style.display = 'none';
+                btnPagar.style.display = 'inline-flex';
+                btnCancelar.style.display = 'none';
+                if (catSelect) catSelect.style.display = 'none';
+                if (catLabel) catLabel.style.display = 'none';
+                priceEl.textContent = my.length + ' reserva(s) ativa(s) — clique Pagar';
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
+            return;
+        }
+
+        panel.classList.add('active');
+        var html = '';
+        var total = 0;
+        var firstSector = null;
+        var hasAvailable = false;
+        var hasMyReservation = false;
+
+        selectedSeats.forEach(function(sc) {
+            var obj = selectedTicketObjects[sc];
+            if (!obj) return;
+            if (!firstSector) firstSector = obj.sector;
+            total += obj.price || 0;
+            if (obj.ticket && obj.ticket.usuarioId === currentUserId && obj.ticket.status === 1) {
+                hasMyReservation = true;
+            } else { hasAvailable = true; }
+            html += '<span class="tm-badge tm-badge-vinho" style="font-size:0.75rem;cursor:pointer;" onclick="tmRemoveBadge(\'' + sc + '\')">' + sc + ' <i class="fa-solid fa-xmark"></i></span>';
+        });
+        listEl.innerHTML = html;
+        sectorEl.textContent = firstSector ? (SECTOR_LABELS[firstSector] || firstSector) : '';
+        priceEl.textContent = total > 0 ? 'R$ ' + total.toFixed(2) : '';
+
+        if (hasMyReservation && !hasAvailable) {
+            btnReservar.style.display = 'none';
+            btnPagar.style.display = 'inline-flex';
+            btnCancelar.style.display = 'inline-flex';
+            if (catSelect) catSelect.style.display = 'none';
+            if (catLabel) catLabel.style.display = 'none';
+        } else if (hasAvailable) {
+            btnReservar.style.display = 'inline-flex';
+            btnPagar.style.display = 'none';
+            btnCancelar.style.display = 'none';
+            if (catSelect) { catSelect.style.display = 'inline-block'; 
+                var meiaOpt = catSelect.querySelector('option[value="1"]');
+                if (meiaOpt) meiaOpt.disabled = firstSector ? !sectorHasMeia(firstSector) : true;
+            }
+            if (catLabel) catLabel.style.display = 'inline-block';
+        }
+    }
+
+    window.tmRemoveBadge = function(code) {
+        var obj = selectedTicketObjects[code];
+        if (obj) toggleSeatSelection(obj.ticket, code, obj.sector);
+    };
+
+    // ---------------------------------------------------------------
+    // Seleciona assento (multi)
     // ---------------------------------------------------------------
     function selectSeat(ticket, code, sector) {
-        // Desmarca seleção anterior
-        if (selectedSeatCode) {
-            var prev = document.getElementById(selectedSeatCode);
-            if (prev) {
-                var prevTicket = tickets.find(function (t) { return t.assentoCodigo === selectedSeatCode; });
-                if (prevTicket) {
-                    var prevSector = getSectorFromCode(selectedSeatCode);
-                    var mine = prevTicket.usuarioId === currentUserId && prevTicket.status === 1;
-                    applySvgState(prev, mine ? 'meu' : 'disponivel', prevSector);
-                }
-            }
-        }
-
-        selectedSeatCode = code;
-        var rect = document.getElementById(code);
-        if (rect) applySvgState(rect, 'selecionado', sector);
-
-        document.getElementById('selected-seat').textContent    = 'Assento ' + code;
-        document.getElementById('selected-sector').textContent  = SECTOR_LABELS[sector] || sector;
-
-        // Mostra/oculta opção de meia-entrada
-        var catSelect = document.getElementById('ticket-category');
-        var meiaOpt   = catSelect.querySelector('option[value="1"]');
-        if (meiaOpt) meiaOpt.disabled = !sectorHasMeia(sector);
-        if (!sectorHasMeia(sector)) catSelect.value = '0';
-
-        updatePriceDisplay();
-        document.getElementById('selection-panel').classList.add('active');
+        toggleSeatSelection(ticket, code, sector);
     }
 
-    function updatePriceDisplay() {
-        if (!selectedSeatCode) return;
-        var cat     = document.getElementById('ticket-category').value;
-        var price   = getPriceForSeat(selectedSeatCode, cat);
-        var priceEl = document.getElementById('selected-price');
-        if (price === null) {
-            priceEl.textContent = 'Categoria indisponível neste setor';
-            document.getElementById('btn-reservar').disabled = true;
-        } else {
-            priceEl.textContent = price === 0 ? 'Gratuito' : 'R$ ' + price.toFixed(2).replace('.', ',');
-            document.getElementById('btn-reservar').disabled = false;
-        }
-    }
-
+    // ---------------------------------------------------------------
+    // Reserva multi-assentos
+    // ---------------------------------------------------------------
     window.reservarAssentoSelecionado = function () {
-        if (!selectedSeatCode) return;
+        var codes = selectedSeats.filter(function(sc) {
+            var obj = selectedTicketObjects[sc];
+            return obj && !(obj.ticket && obj.ticket.usuarioId === currentUserId && obj.ticket.status === 1);
+        });
+        if (codes.length === 0) return;
+
         var category = document.getElementById('ticket-category').value;
         var form = document.createElement('form');
         form.method = 'post';
-        form.action = '/Ticket/Reservar'
-                    + '?assentoCodigo=' + encodeURIComponent(selectedSeatCode)
-                    + '&eventId='       + encodeURIComponent(eventId)
-                    + '&category='      + encodeURIComponent(category);
+
+        // Reserva o primeiro, depois redireciona para checkout com lista
+        var seatCodes = codes.join(',');
+        form.action = '/Ticket/ReservarMultiplos'
+                    + '?assentosCodigos=' + encodeURIComponent(seatCodes)
+                    + '&eventId='         + encodeURIComponent(eventId)
+                    + '&category='        + encodeURIComponent(category);
         document.body.appendChild(form);
         form.submit();
     };
 
-    document.addEventListener('DOMContentLoaded', initSeatMap);
-    document.getElementById('ticket-category').addEventListener('change', updatePriceDisplay);
+    // ---------------------------------------------------------------
+    // Pagar minhas reservas (adiciona ao cart e redireciona)
+    // ---------------------------------------------------------------
+    window.pagarMinhaReserva = function () {
+        var my = findMyReservations();
+        if (my.length === 0) return;
+
+        // Adiciona todas ao cart
+        my.forEach(function(t) {
+            if (t.assentoCodigo) {
+                var sector = getSectorFromCode(t.assentoCodigo);
+                tmCart.add(t.assentoCodigo, eventId, getPriceForSeat(t.assentoCodigo, 0), sector);
+            }
+        });
+        // Redireciona para o pagamento multi
+        window.location.href = '/Ticket/PagarMultiplos?eventId=' + eventId;
+    };
+
+    window.cancelarMinhaReserva = function () {
+        if (selectedSeats.length === 0) return;
+        var codes = selectedSeats.filter(function(sc) {
+            var obj = selectedTicketObjects[sc];
+            return obj && obj.ticket && obj.ticket.usuarioId === currentUserId && obj.ticket.status === 1;
+        });
+        if (codes.length === 0) return;
+        var code = codes[0]; // cancela o primeiro selecionado
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/Ticket/CancelarReserva?assentoCodigo=' + encodeURIComponent(code) + '&eventId=' + encodeURIComponent(eventId);
+        document.body.appendChild(form);
+        form.submit();
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initSeatMap();
+        updateMyReservationBar();
+        tmCart.render();
+    });
+
+    document.getElementById('ticket-category').addEventListener('change', function() {
+        // Atualiza preços dos selecionados ao mudar categoria
+        Object.keys(selectedTicketObjects).forEach(function(code) {
+            var obj = selectedTicketObjects[code];
+            if (obj && obj.ticket && !(obj.ticket.usuarioId === currentUserId && obj.ticket.status === 1)) {
+                obj.price = getPriceForSeat(code, this.value);
+            }
+        }.bind(this));
+        updateSelectionPanel();
+    });
 
     // ---------------------------------------------------------------
     // SignalR callback — atualiza estado de assento em tempo real

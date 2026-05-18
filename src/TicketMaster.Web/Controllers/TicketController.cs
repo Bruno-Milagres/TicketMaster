@@ -194,6 +194,71 @@ public class TicketController : Controller
     }
 
     //====================================================================================================================
+    // Multi-reserva (JS: reserva vários assentos de uma vez)
+    //====================================================================================================================
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> ReservarMultiplos(string assentosCodigos, Guid eventId, int category = 0, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(assentosCodigos))
+        {
+            TempData["Erro"] = "Nenhum assento selecionado.";
+            return RedirectToAction(nameof(Index), new { eventId });
+        }
+
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var usuarioLogadoId = Guid.Parse(userIdString!);
+        var assentos = assentosCodigos.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var ultimoErro = "";
+
+        foreach (var codigo in assentos)
+        {
+            var cmd = new ReservarAssentoCommand(codigo.Trim(), usuarioLogadoId, eventId);
+            var resultado = await _mediator.Send(cmd, cancellationToken);
+            if (!resultado.IsSuccess) ultimoErro = resultado.ErrorMessage;
+        }
+
+        if (!string.IsNullOrEmpty(ultimoErro))
+            TempData["Erro"] = ultimoErro;
+        else
+            TempData["Sucesso"] = $"{assentos.Length} assento(s) reservado(s)!";
+
+        return RedirectToAction(nameof(Checkout), new { codigo = assentos.Length > 0 ? assentos[0] : "", eventId });
+    }
+
+    //====================================================================================================================
+    // Multi-pagamento (JS: paga todas as reservas ativas)
+    //====================================================================================================================
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> PagarMultiplos(Guid eventId, CancellationToken cancellationToken = default)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString))
+            return Challenge();
+
+        var usuarioLogadoId = Guid.Parse(userIdString);
+        var minhasReservas = await _context.Tickets
+            .Where(t => t.EventId == eventId && t.UsuarioId == usuarioLogadoId && t.Status == TicketStatus.Reservado)
+            .ToListAsync(cancellationToken);
+
+        if (!minhasReservas.Any())
+        {
+            TempData["Erro"] = "Nenhuma reserva ativa para pagamento.";
+            return RedirectToAction(nameof(Index), new { eventId });
+        }
+
+        foreach (var ticket in minhasReservas)
+        {
+            var comando = new PagamentoCommand(ticket.AssentoCodigo, usuarioLogadoId, eventId);
+            await _publishEndpoint.Publish(comando, cancellationToken);
+        }
+
+        TempData["Sucesso"] = $"{minhasReservas.Count} pedido(s) de pagamento enviado(s)! Aguarde a confirmação no mapa.";
+        return RedirectToAction("Index", "Home");
+    }
+
+    //====================================================================================================================
     // B4 — Página do ingresso com QR Code
     //====================================================================================================================
     [Authorize]
