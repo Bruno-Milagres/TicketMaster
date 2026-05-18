@@ -171,26 +171,25 @@ public class TicketController : Controller
             .ToListAsync(cancellationToken);
         ViewBag.SectorPrices = sectorPrices;
 
-        if (minhasReservas.Any())
+        if (!minhasReservas.Any())
         {
-            var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
-            var codigosAssentos = string.Join(",", minhasReservas.Select(r => r.AssentoCodigo));
-            var pixPayload = qrService.GerarPayloadJwt(minhasReservas.First().Id, eventId, codigosAssentos, userIdString);
-            var qrBytes = qrService.GerarQrCodePng(pixPayload);
-            ViewBag.QrCodeBase64 = Convert.ToBase64String(qrBytes);
+            TempData["Sucesso"] = "Todas as reservas foram removidas.";
+            return RedirectToAction(nameof(Index), new { eventId });
+        }
 
-            var total = minhasReservas.Sum(r =>
-            {
-                var sector = GetSectorFromCode(r.AssentoCodigo);
-                var price = sectorPrices.FirstOrDefault(p => p.Sector == sector && p.Category == TicketMaster.Domain.Enums.TicketCategory.Inteira);
-                return price?.Price ?? 0;
-            });
-            ViewBag.Total = total;
-        }
-        else
+        var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
+        var codigosAssentos = string.Join(",", minhasReservas.Select(r => r.AssentoCodigo));
+        var pixPayload = qrService.GerarPayloadJwt(minhasReservas.First().Id, eventId, codigosAssentos, userIdString);
+        var qrBytes = qrService.GerarQrCodePng(pixPayload);
+        ViewBag.QrCodeBase64 = Convert.ToBase64String(qrBytes);
+
+        var total = minhasReservas.Sum(r =>
         {
-            ViewBag.Total = 0m;
-        }
+            var sector = GetSectorFromCode(r.AssentoCodigo);
+            var price = sectorPrices.FirstOrDefault(p => p.Sector == sector && p.Category == TicketMaster.Domain.Enums.TicketCategory.Inteira);
+            return price?.Price ?? 0;
+        });
+        ViewBag.Total = total;
 
         return View();
     }
