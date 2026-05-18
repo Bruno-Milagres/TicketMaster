@@ -227,7 +227,7 @@ public class TicketController : Controller
     }
 
     //====================================================================================================================
-    // Multi-pagamento (JS: paga todas as reservas ativas)
+    // Página de Pagamento (mostra reservas + opções de pagamento)
     //====================================================================================================================
     [Authorize]
     [HttpGet]
@@ -242,10 +242,42 @@ public class TicketController : Controller
             .Where(t => t.EventId == eventId && t.UsuarioId == usuarioLogadoId && t.Status == TicketStatus.Reservado)
             .ToListAsync(cancellationToken);
 
+        var evento = await _context.Events.FindAsync(new object[] { eventId }, cancellationToken);
+
+        ViewBag.EventId = eventId;
+        ViewBag.Reservas = minhasReservas;
+        ViewBag.EventName = evento?.Title ?? "Evento";
+
+        // Gera QR Code PIX mock para cada reserva
+        var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
+        var qrCodes = new List<object>();
+        foreach (var r in minhasReservas)
+        {
+            var payload = qrService.GerarPayloadJwt(r.Id, r.EventId, r.AssentoCodigo, userIdString);
+            var qrBytes = qrService.GerarQrCodePng(payload);
+            qrCodes.Add(new { seat = r.AssentoCodigo, qrBase64 = Convert.ToBase64String(qrBytes) });
+        }
+        ViewBag.QrCodes = qrCodes;
+
+        return View();
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> ConfirmarPagamento(Guid eventId, string metodo, CancellationToken cancellationToken = default)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString)) return Challenge();
+
+        var usuarioLogadoId = Guid.Parse(userIdString);
+        var minhasReservas = await _context.Tickets
+            .Where(t => t.EventId == eventId && t.UsuarioId == usuarioLogadoId && t.Status == TicketStatus.Reservado)
+            .ToListAsync(cancellationToken);
+
         if (!minhasReservas.Any())
         {
-            TempData["Erro"] = "Nenhuma reserva ativa para pagamento.";
-            return RedirectToAction(nameof(Index), new { eventId });
+            TempData["Erro"] = "Nenhuma reserva ativa.";
+            return RedirectToAction("Index", new { eventId });
         }
 
         foreach (var ticket in minhasReservas)
@@ -254,7 +286,7 @@ public class TicketController : Controller
             await _publishEndpoint.Publish(comando, cancellationToken);
         }
 
-        TempData["Sucesso"] = $"{minhasReservas.Count} pedido(s) de pagamento enviado(s)! Aguarde a confirmação no mapa.";
+        TempData["Sucesso"] = $"{minhasReservas.Count} pedido(s) de pagamento enviado(s)!";
         return RedirectToAction("Index", "Home");
     }
 

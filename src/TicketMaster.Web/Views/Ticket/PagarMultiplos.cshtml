@@ -1,0 +1,155 @@
+@{
+    ViewData["Title"] = "Pagamento";
+    var reservas = ViewBag.Reservas as List<TicketMaster.Domain.Entities.Ticket> ?? new();
+    var qrCodes = ViewBag.QrCodes as List<object> ?? new();
+    var eventName = ViewBag.EventName as string ?? "Evento";
+    var eventId = ViewBag.EventId as Guid?;
+}
+
+<div class="container tm-page">
+    <div class="row g-4">
+        @* Lista de Reservas *@
+        <div class="col-12 col-lg-7">
+            <div class="tm-card">
+                <div style="padding:1.5rem;">
+                    <h1 class="tm-title-md" style="font-size:1.25rem;margin-bottom:1.5rem;">
+                        <i class="fa-regular fa-credit-card me-2" style="color:var(--accent);"></i>Pagamento
+                    </h1>
+                    <p class="tm-subtitle mb-3" style="font-size:0.9rem;">
+                        <strong style="color:var(--text-primary);">@eventName</strong> — @reservas.Count ingresso(s)
+                    </p>
+
+                    <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                        @foreach (var r in reservas)
+                        {
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;background:var(--bg-matte);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                                <div>
+                                    <strong style="font-family:var(--font-mono);color:var(--gold);">@r.AssentoCodigo</strong>
+                                    <span style="color:var(--text-muted);font-size:0.8rem;display:block;">Reservado até @r.DataExpiraReserva?.ToString("HH:mm")</span>
+                                </div>
+                                <form method="post" asp-action="CancelarReserva" asp-controller="Ticket" style="margin:0;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="assentoCodigo" value="@r.AssentoCodigo" />
+                                    <input type="hidden" name="eventId" value="@r.EventId" />
+                                    <button type="submit" class="tm-btn tm-btn-danger tm-btn-sm" onclick="return confirm('Remover @r.AssentoCodigo?')">
+                                        <i class="fa-solid fa-xmark me-1"></i>Remover
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+
+                    <div style="height:1px;background:var(--border);margin:1.5rem 0;"></div>
+
+                    @* Métodos de pagamento *@
+                    <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;">
+                        <button class="tm-btn tm-btn-primary tm-btn-sm" id="btn-card" onclick="selectPayment('card')">
+                            <i class="fa-regular fa-credit-card me-1"></i>Cartão
+                        </button>
+                        <button class="tm-btn tm-btn-outline tm-btn-sm" id="btn-pix" onclick="selectPayment('pix')">
+                            <i class="fa-solid fa-qrcode me-1"></i>PIX
+                        </button>
+                    </div>
+
+                    @* Cartão *@
+                    <div id="payment-card" style="display:block;">
+                        <form method="post" asp-action="ConfirmarPagamento">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="eventId" value="@eventId" />
+                            <input type="hidden" name="metodo" value="card" />
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="tm-form-label">Número do cartão</label>
+                                    <input type="text" class="tm-form-control" placeholder="0000 0000 0000 0000" value="4111 1111 1111 1111" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="tm-form-label">Validade</label>
+                                    <input type="text" class="tm-form-control" placeholder="MM/AA" value="12/28" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="tm-form-label">CVV</label>
+                                    <input type="text" class="tm-form-control" placeholder="123" value="123" />
+                                </div>
+                            </div>
+                            <div style="margin-top:1rem;">
+                                <span style="font-size:0.75rem;color:var(--text-muted);">
+                                    <i class="fa-solid fa-lock me-1"></i>Pagamento simulado — nenhum valor será cobrado
+                                </span>
+                            </div>
+                            <button type="submit" class="tm-btn tm-btn-primary w-100 mt-3">
+                                <i class="fa-regular fa-circle-check me-1"></i>Pagar @reservas.Count ingresso(s)
+                            </button>
+                        </form>
+                    </div>
+
+                    @* PIX *@
+                    <div id="payment-pix" style="display:none;">
+                        <div style="text-align:center;padding:1.5rem 0;">
+                            @if (qrCodes.Count > 0)
+                            {
+                                var qr = qrCodes[0] as dynamic;
+                                <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;">
+                                    @foreach (var q in qrCodes)
+                                    {
+                                        var item = q as dynamic;
+                                        <div style="text-align:center;">
+                                            <p style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;">@item.seat</p>
+                                            <img src="data:image/png;base64,@item.qrBase64" style="width:160px;border-radius:var(--radius-sm);" />
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <p style="color:var(--text-muted);font-size:0.85rem;margin-top:1rem;">
+                                <i class="fa-solid fa-clock me-1"></i>PIX simulado — use o QR Code para testar
+                            </p>
+                            <form method="post" asp-action="ConfirmarPagamento">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="eventId" value="@eventId" />
+                                <input type="hidden" name="metodo" value="pix" />
+                                <button type="submit" class="tm-btn tm-btn-primary w-100 mt-2">
+                                    <i class="fa-regular fa-circle-check me-1"></i>Confirmar Pagamento PIX
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Resumo *@
+        <div class="col-12 col-lg-5">
+            <div class="tm-card" style="position:sticky;top:calc(var(--navbar-height) + 1rem);">
+                <div style="padding:1.5rem;">
+                    <h3 class="tm-title-md" style="font-size:1rem;margin-bottom:1rem;">
+                        <i class="fa-regular fa-rectangle-list me-2" style="color:var(--accent);"></i>Resumo
+                    </h3>
+                    <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                        @foreach (var r in reservas)
+                        {
+                            <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                                <span style="color:var(--text-secondary);">@r.AssentoCodigo</span>
+                                <span style="font-family:var(--font-mono);color:var(--gold);">R$ 0,00</span>
+                            </div>
+                        }
+                    </div>
+                    <div style="height:1px;background:var(--border);margin:1rem 0;"></div>
+                    <div style="display:flex;justify-content:space-between;font-weight:600;">
+                        <span>Total</span>
+                        <span style="font-family:var(--font-mono);color:var(--gold);">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function selectPayment(method) {
+            document.getElementById('payment-card').style.display = method === 'card' ? 'block' : 'none';
+            document.getElementById('payment-pix').style.display = method === 'pix' ? 'block' : 'none';
+            document.getElementById('btn-card').className = method === 'card' ? 'tm-btn tm-btn-primary tm-btn-sm' : 'tm-btn tm-btn-outline tm-btn-sm';
+            document.getElementById('btn-pix').className = method === 'pix' ? 'tm-btn tm-btn-primary tm-btn-sm' : 'tm-btn tm-btn-outline tm-btn-sm';
+        }
+    </script>
+}

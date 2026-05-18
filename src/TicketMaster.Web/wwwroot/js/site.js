@@ -150,7 +150,9 @@ var tmCart = {
             items.forEach(function(i) {
                 html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 1rem;border-bottom:1px solid var(--border);font-size:0.85rem;">' +
                     '<span><strong>' + i.seatCode + '</strong> <span style="color:var(--text-muted);font-size:0.75rem;">' + (i.sector || '') + '</span></span>' +
-                    '<span style="font-family:var(--font-mono);color:var(--gold);">R$ ' + (i.price || 0).toFixed(2) + '</span></div>';
+                    '<span style="display:flex;align-items:center;gap:0.5rem;">' +
+                    '<span style="font-family:var(--font-mono);color:var(--gold);">R$ ' + (i.price || 0).toFixed(2) + '</span>' +
+                    '<button onclick="tmCart.remove(\'' + i.seatCode + '\')" style="all:unset;cursor:pointer;color:var(--danger,#EF4444);font-size:0.8rem;"><i class="fa-solid fa-xmark"></i></button></span></div>';
                 total += i.price || 0;
             });
             list.innerHTML = html;
@@ -167,11 +169,16 @@ var tmCart = {
     },
     payAllUrl: function () {
         var eventId = this.getEventId();
-        return eventId ? '/Ticket/PagarMultiplos?eventId=' + eventId : null;
+        if (!eventId) return null;
+        return '/Ticket/PagarMultiplos?eventId=' + eventId;
     }
 };
 
 tmCart.load();
+// Limpa cart se não estiver na página do mapa de assentos (evita itens fantasmas)
+if (window.location.pathname.indexOf('/Ticket/Index') === -1) {
+    tmCart.clear();
+}
 
 // A3 — Toast de feedback
 function showToast(message, type) {
