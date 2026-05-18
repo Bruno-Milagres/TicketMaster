@@ -318,7 +318,7 @@
         }
     }
 
-    function reservarAssentoSelecionado() {
+    window.reservarAssentoSelecionado = function () {
         if (!selectedSeatCode) return;
         var category = document.getElementById('ticket-category').value;
         var form = document.createElement('form');
@@ -329,7 +329,7 @@
                     + '&category='      + encodeURIComponent(category);
         document.body.appendChild(form);
         form.submit();
-    }
+    };
 
     document.addEventListener('DOMContentLoaded', initSeatMap);
     document.getElementById('ticket-category').addEventListener('change', updatePriceDisplay);
