@@ -251,13 +251,16 @@ public class TicketController : Controller
         ViewBag.EventId = eventId;
         ViewBag.Reservas = minhasReservas;
         ViewBag.EventName = evento?.Title ?? "Evento";
+        ViewBag.QrCodeBase64 = "";
 
-        // Gera UM QR Code PIX para o pagamento inteiro (concatenando todos os assentos)
-        var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
-        var codigosAssentos = string.Join(",", minhasReservas.Select(r => r.AssentoCodigo));
-        var pixPayload = qrService.GerarPayloadJwt(minhasReservas.First().Id, eventId, codigosAssentos, userIdString);
-        var qrBytes = qrService.GerarQrCodePng(pixPayload);
-        ViewBag.QrCodeBase64 = Convert.ToBase64String(qrBytes);
+        if (minhasReservas.Any())
+        {
+            var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
+            var codigosAssentos = string.Join(",", minhasReservas.Select(r => r.AssentoCodigo));
+            var pixPayload = qrService.GerarPayloadJwt(minhasReservas.First().Id, eventId, codigosAssentos, userIdString);
+            var qrBytes = qrService.GerarQrCodePng(pixPayload);
+            ViewBag.QrCodeBase64 = Convert.ToBase64String(qrBytes);
+        }
 
         return View();
     }
