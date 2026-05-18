@@ -151,6 +151,7 @@
 </div>
 
 @section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
 (function () {
     var eventId       = '@ViewBag.EventId';
@@ -478,9 +479,40 @@
         form.submit();
     };
 
+    // ---------------------------------------------------------------
+    // SignalR — Conexão com TicketHub
+    // ---------------------------------------------------------------
+    var connection = null;
+    function initSignalR() {
+        if (!eventId || typeof signalR === 'undefined') return;
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl('/ticketHub')
+            .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+            .build();
+
+        connection.on('AtualizarAssento', function(seatId, statusStr) {
+            var status = statusStr === 'Disponivel' ? 0
+                       : statusStr === 'Reservado' ? 1
+                       : statusStr === 'Vendido' ? 2 : 3;
+            // Atualiza ticket array local
+            var t = tickets.find(function(x) { return x.assentoCodigo === seatId; });
+            if (t) {
+                t.status = status;
+                // Se é meu, seta usuarioId
+                if (status === 1) t.usuarioId = currentUserId;
+            }
+            window.applySeatStatus(seatId, status);
+        });
+
+        connection.start().then(function() {
+            connection.invoke('EntrarNaSalaDoEvento', eventId)
+                .catch(function(err) { console.error('Erro ao entrar na sala:', err); });
+        }).catch(function(err) { console.error('SignalR connection error:', err); });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         initSeatMap();
-        // Delay para garantir que o SVG foi processado
+        initSignalR();
         setTimeout(updateMyReservationBar, 100);
         tmCart.render();
     });
