@@ -1,13 +1,17 @@
 @{ ViewData["Title"] = "Pedido Confirmado!"; }
 
-<div class="row justify-content-center">
-    <div class="col-12 col-md-8 col-lg-6 text-center">
-        <div class="card border-0 shadow-sm mt-5">
-            <div class="card-body p-5">
-                <i class="fa-solid fa-circle-check text-success" style="font-size:4rem;"></i>
-                <h1 class="h3 mt-3">Pedido Confirmado!</h1>
-                <p class="text-muted">@TempData["Sucesso"]</p>
-                <a href="/" class="btn btn-primary mt-3"><i class="fa-solid fa-ticket me-1"></i>Ver Eventos</a>
+<div class="container tm-page">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6 text-center">
+            <div class="tm-card">
+                <div style="padding:3rem 2rem;">
+                    <div style="width:72px;height:72px;border-radius:50%;background:rgba(16,185,129,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+                        <i class="fa-solid fa-circle-check" style="font-size:2rem;color:var(--color-green, #48C78E);"></i>
+                    </div>
+                    <h1 class="tm-title-md" style="margin-bottom:0.75rem;">Pedido Confirmado!</h1>
+                    <p style="color:var(--text-secondary);margin-bottom:1.5rem;">@TempData["Sucesso"]</p>
+                    <a href="/" class="tm-btn tm-btn-primary"><i class="fa-solid fa-ticket me-1"></i>Ver Eventos</a>
+                </div>
             </div>
         </div>
     </div>
