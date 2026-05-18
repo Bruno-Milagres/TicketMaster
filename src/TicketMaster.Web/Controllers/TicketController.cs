@@ -253,6 +253,12 @@ public class TicketController : Controller
         ViewBag.EventName = evento?.Title ?? "Evento";
         ViewBag.QrCodeBase64 = "";
 
+        // Busca preços dos setores para calcular totais
+        var sectorPrices = await _context.EventSectorPrices
+            .Where(p => p.EventId == eventId)
+            .ToListAsync(cancellationToken);
+        ViewBag.SectorPrices = sectorPrices;
+
         if (minhasReservas.Any())
         {
             var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
@@ -260,6 +266,20 @@ public class TicketController : Controller
             var pixPayload = qrService.GerarPayloadJwt(minhasReservas.First().Id, eventId, codigosAssentos, userIdString);
             var qrBytes = qrService.GerarQrCodePng(pixPayload);
             ViewBag.QrCodeBase64 = Convert.ToBase64String(qrBytes);
+
+            // Calcula total
+            var total = minhasReservas.Sum(r =>
+            {
+                var sector = GetSectorFromCode(r.AssentoCodigo);
+                var price = sectorPrices.FirstOrDefault(p =>
+                    p.Sector == sector && p.Category == TicketMaster.Domain.Enums.TicketCategory.Inteira);
+                return price?.Price ?? 0;
+            });
+            ViewBag.Total = total;
+        }
+        else
+        {
+            ViewBag.Total = 0m;
         }
 
         return View();
@@ -359,3 +379,18 @@ public class TicketController : Controller
 }
 
 public record ValidateQrRequest(string QrPayload);
+
+// Helper: extrai setor do código do assento
+internal static string GetSectorFromCode(string code)
+{
+    if (string.IsNullOrEmpty(code)) return "PlateiaCentro";
+    if (code.StartsWith("FRE-") || code.StartsWith("FRD-")) return "Frisa";
+    if (code.StartsWith("CAME-") || code.StartsWith("CAMD-")) return "Camarote";
+    if (code.StartsWith("BAL-")) return "Balcao";
+    if (code.StartsWith("AC-")) return "Acessibilidade";
+    var c = code[0];
+    if (c >= 'A' && c <= 'E') return "PlateiaFrente";
+    if (c >= 'F' && c <= 'P') return "PlateiaCentro";
+    if (c >= 'Q' && c <= 'V') return "PlateiaFundo";
+    return "PlateiaCentro";
+}

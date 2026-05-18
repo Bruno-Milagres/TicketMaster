@@ -4,6 +4,26 @@
     var qrBase64 = ViewBag.QrCodeBase64 as string ?? "";
     var eventName = ViewBag.EventName as string ?? "Evento";
     var eventId = ViewBag.EventId as Guid?;
+    var sectorPrices = ViewBag.SectorPrices as List<TicketMaster.Domain.Entities.EventSectorPrice> ?? new();
+    var total = ViewBag.Total is decimal t ? t : 0m;
+
+    string GetSectorFromCode(string code) {
+        if (string.IsNullOrEmpty(code)) return "PlateiaCentro";
+        if (code.StartsWith("FRE-") || code.StartsWith("FRD-")) return "Frisa";
+        if (code.StartsWith("CAME-") || code.StartsWith("CAMD-")) return "Camarote";
+        if (code.StartsWith("BAL-")) return "Balcao";
+        if (code.StartsWith("AC-")) return "Acessibilidade";
+        var c = code[0];
+        if (c >= 'A' && c <= 'E') return "PlateiaFrente";
+        if (c >= 'F' && c <= 'P') return "PlateiaCentro";
+        if (c >= 'Q' && c <= 'V') return "PlateiaFundo";
+        return "PlateiaCentro";
+    }
+
+    decimal GetPrice(string code) {
+        var sector = GetSectorFromCode(code);
+        return sectorPrices.FirstOrDefault(p => p.Sector == sector && p.Category == TicketMaster.Domain.Enums.TicketCategory.Inteira)?.Price ?? 0;
+    }
 }
 
 <div class="container tm-page">
@@ -116,16 +136,17 @@
                     <div style="display:flex;flex-direction:column;gap:0.5rem;">
                         @foreach (var r in reservas)
                         {
+                            var price = GetPrice(r.AssentoCodigo);
                             <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
                                 <span style="color:var(--text-secondary);">@r.AssentoCodigo</span>
-                                <span style="font-family:var(--font-mono);color:var(--gold);">R$ 0,00</span>
+                                <span style="font-family:var(--font-mono);color:var(--gold);">@(price > 0 ? $"R$ {price:N2}" : "Grátis")</span>
                             </div>
                         }
                     </div>
                     <div style="height:1px;background:var(--border);margin:1rem 0;"></div>
                     <div style="display:flex;justify-content:space-between;font-weight:600;">
                         <span>Total</span>
-                        <span style="font-family:var(--font-mono);color:var(--gold);">R$ 0,00</span>
+                        <span style="font-family:var(--font-mono);color:var(--gold);">@(total > 0 ? $"R$ {total:N2}" : "Grátis")</span>
                     </div>
                 </div>
             </div>
