@@ -2,29 +2,34 @@
     ViewData["Title"] = "Política de Privacidade";
 }
 
-<div class="row justify-content-center">
-    <div class="col-12 col-lg-9">
-        <div class="card border-0 shadow-sm tm-hover-lift">
-            <div class="row g-0 align-items-stretch">
-                <div class="col-12 col-md-5">
-                    @* Placeholder: adicione a imagem em wwwroot/img/privacy-shield.jpg *@
-                    <img src="~/img/privacy-shield.jpg" class="img-fluid h-100 w-100 rounded-start placeholder-img" alt="Ilustração de segurança e privacidade" />
-                </div>
-                <div class="col-12 col-md-7">
-                    <div class="card-body p-4 p-md-5">
-                        <span class="badge text-bg-primary mb-3">Privacidade</span>
-                        <h1 class="h2 mb-3">
-                            <i class="fa-regular fa-file-lines me-2"></i>@ViewData["Title"]
-                        </h1>
-                        <p class="text-muted mb-3">
-                            Este sistema não coleta dados pessoais além do estritamente necessário para a reserva e venda de ingressos.
-                        </p>
-                        <p class="text-muted mb-4">
-                            Suas informações são utilizadas exclusivamente para a gestão da sua conta e para o processamento das transações.
-                        </p>
-                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="fa-solid fa-arrow-left me-2"></i>Voltar ao início
-                        </a>
+<div class="container tm-page">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="tm-card">
+                <div class="row g-0">
+                    <div class="col-12 col-md-5 d-flex align-items-center justify-content-center" style="background:var(--bg-matte);border-radius:var(--radius-md) 0 0 var(--radius-md);min-height:250px;">
+                        <div style="text-align:center;padding:2rem;">
+                            <div style="width:56px;height:56px;border-radius:50%;background:var(--violet-glow);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                                <i class="fa-solid fa-shield-halved" style="color:var(--violet-soft);font-size:1.25rem;"></i>
+                            </div>
+                            <span class="tm-badge tm-badge-violet">Privacidade</span>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-7">
+                        <div style="padding:2rem;">
+                            <h1 class="tm-title-md" style="font-size:1.25rem;margin-bottom:1rem;">
+                                <i class="fa-regular fa-file-lines me-2" style="color:var(--accent);"></i>@ViewData["Title"]
+                            </h1>
+                            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1rem;">
+                                Este sistema não coleta dados pessoais além do estritamente necessário para a reserva e venda de ingressos.
+                            </p>
+                            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;">
+                                Suas informações são utilizadas exclusivamente para a gestão da sua conta e para o processamento das transações.
+                            </p>
+                            <a asp-controller="Home" asp-action="Index" class="tm-btn tm-btn-outline">
+                                <i class="fa-solid fa-arrow-left me-2"></i>Voltar ao início
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

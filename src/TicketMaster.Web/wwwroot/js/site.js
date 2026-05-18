@@ -73,6 +73,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+
+
 // A3 — Toast de feedback
 function showToast(message, type) {
     if (!message) return;

@@ -46,6 +46,12 @@
                                         else if (p.Status == "Pendente") { <i class="fa-regular fa-clock me-1"></i> }
                                         @p.Status
                                     </span>
+                                    @if (p.Status == "Pago")
+                                    {
+                                        <span class="tm-btn tm-btn-outline tm-btn-sm ms-2 disabled">
+                                            <i class="fa-solid fa-qrcode me-1"></i>Ingresso
+                                        </span>
+                                    }
                                 </td>
                             </tr>
                         }

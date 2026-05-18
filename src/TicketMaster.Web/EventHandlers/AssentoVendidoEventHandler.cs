@@ -27,7 +27,7 @@ public sealed class AssentoVendidoEventHandler : INotificationHandler<AssentoVen
 
         await _hubContext.Clients
             .Group(notification.EventId.ToString())
-            .SendAsync("AtualizarAssento", notification.AssentoCodigo, "Vendido", cancellationToken);
+            .SendAsync("AtualizarAssento", notification.AssentoCodigo, "Vendido", notification.UsuarioId?.ToString() ?? "", cancellationToken);
 
         await _cache.RemoveAsync($"tickets:evento:{notification.EventId}", cancellationToken);
     }

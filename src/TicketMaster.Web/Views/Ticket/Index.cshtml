@@ -116,18 +116,34 @@
     <!-- Painel de seleção -->
     <div class="tm-selection-panel" id="selection-panel">
         <div class="tm-selection-info">
-            <span class="tm-selection-seat" id="selected-seat">selecione um assento</span>
-            <span id="selected-sector" style="font-size:.8rem;opacity:.7;display:block;"></span>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;max-height:32px;overflow-y:auto;" id="selected-seats-list"></div>
+            <span id="selected-sector" style="font-size:.8rem;opacity:.7;display:block;margin-top:0.25rem;"></span>
             <span class="tm-selection-price" id="selected-price"></span>
         </div>
-        <div class="d-flex gap-2 align-items-center">
+        <div class="d-flex gap-2 align-items-center" id="selection-actions">
             <label class="tm-form-label mb-0" for="ticket-category" style="white-space:nowrap;">Tipo:</label>
-            <select class="tm-form-control" id="ticket-category" style="min-width:130px;">
+            <select class="tm-form-control" id="ticket-category" style="min-width:120px;">
                 <option value="0">Inteira</option>
                 <option value="1">Meia-entrada</option>
             </select>
-            <button class="tm-btn tm-btn-primary" id="btn-reservar" onclick="reservarAssentoSelecionado()">
+            <button class="tm-btn tm-btn-primary tm-btn-sm" id="btn-reservar" onclick="reservarAssentoSelecionado()">
                 <i class="fa-regular fa-circle-check me-1"></i>Reservar
+            </button>
+            <button class="tm-btn tm-btn-primary tm-btn-sm" id="btn-pagar-minha" style="display:none;" onclick="pagarMinhaReserva()">
+                <i class="fa-regular fa-circle-check me-1"></i>Pagar
+            </button>
+            <button class="tm-btn tm-btn-outline tm-btn-sm" id="btn-cancelar-minha" style="display:none;" onclick="cancelarMinhaReserva()">
+                <i class="fa-solid fa-xmark me-1"></i>Cancelar
+            </button>
+        </div>
+    </div>
+
+    <!-- Botão flutuante de pagamento (quando tem reserva ativa sem seleção) -->
+    <div id="my-reservation-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);padding:0.75rem 1rem;z-index:100;">
+        <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+            <span style="font-size:0.9rem;color:var(--text-secondary);" id="my-reservation-count"></span>
+            <button class="tm-btn tm-btn-primary" onclick="pagarMinhaReserva()">
+                <i class="fa-regular fa-circle-check me-1"></i>Pagar Todas as Reservas
             </button>
         </div>
     </div>
@@ -135,6 +151,7 @@
 </div>
 
 @section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script>
 (function () {
     var eventId       = '@ViewBag.EventId';
@@ -146,7 +163,13 @@
         p.Sector, Category = (int)p.Category, p.Price
     }), camelCase));
 
-    var selectedSeatCode = null;
+    // Multi-seleção: array de códigos selecionados
+    var selectedSeats = [];
+    var selectedTicketObjects = {};
+    // Categoria global (a mesma para todos ao reservar)
+    var globalCategory = 0;
+    // Minhas reservas ativas no carregamento
+    var myReservations = [];
 
     // ---------------------------------------------------------------
     // Mapeia código do assento → setor de domínio
@@ -271,68 +294,228 @@
     }
 
     // ---------------------------------------------------------------
-    // Seleciona assento no mapa
+    // Identifica minhas reservas ativas
+    // ---------------------------------------------------------------
+    function findMyReservations() {
+        myReservations = tickets.filter(function(t) {
+            return t.usuarioId === currentUserId && t.status === 1;
+        });
+        return myReservations;
+    }
+
+    // ---------------------------------------------------------------
+    // Atualiza barra de pagamento fixa (se tenho reservas sem clicar)
+    // ---------------------------------------------------------------
+    function updateMyReservationBar() {
+        var my = findMyReservations();
+        var bar = document.getElementById('my-reservation-bar');
+        if (!bar) return;
+        if (selectedSeats.length > 0) { bar.style.display = 'none'; return; }
+        if (my.length > 0) {
+            bar.style.display = 'block';
+            document.getElementById('my-reservation-count').textContent = my.length + ' reserva(s) ativa(s)';
+        } else { bar.style.display = 'none'; }
+    }
+
+    // ---------------------------------------------------------------
+    // Adiciona/remove assento da multi-seleção
+    // ---------------------------------------------------------------
+    function toggleSeatSelection(ticket, code, sector) {
+        var idx = selectedSeats.indexOf(code);
+        var rect = document.getElementById(code);
+        if (idx >= 0) {
+            selectedSeats.splice(idx, 1);
+            delete selectedTicketObjects[code];
+            if (rect) applySvgState(rect, 'disponivel', sector);
+        } else {
+            selectedSeats.push(code);
+            selectedTicketObjects[code] = { ticket: ticket, code: code, sector: sector, price: getPriceForSeat(code, 0) };
+            if (rect) applySvgState(rect, 'selecionado', sector);
+        }
+        updateSelectionPanel();
+        updateMyReservationBar();
+    }
+
+    // ---------------------------------------------------------------
+    // Atualiza painel inferior
+    // ---------------------------------------------------------------
+    function updateSelectionPanel() {
+        var listEl = document.getElementById('selected-seats-list');
+        var panel = document.getElementById('selection-panel');
+        var priceEl = document.getElementById('selected-price');
+        var sectorEl = document.getElementById('selected-sector');
+        var catSelect = document.getElementById('ticket-category');
+        var catLabel = document.querySelector('label[for="ticket-category"]');
+        var btnReservar = document.getElementById('btn-reservar');
+        var btnPagar = document.getElementById('btn-pagar-minha');
+        var btnCancelar = document.getElementById('btn-cancelar-minha');
+
+        if (!listEl) return;
+
+        if (selectedSeats.length === 0) {
+            listEl.innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem;">Clique em um assento</span>';
+            sectorEl.textContent = '';
+            priceEl.textContent = '';
+            var my = findMyReservations();
+            if (my.length > 0) {
+                btnReservar.style.display = 'none';
+                btnPagar.style.display = 'inline-flex';
+                btnCancelar.style.display = 'none';
+                if (catSelect) catSelect.style.display = 'none';
+                if (catLabel) catLabel.style.display = 'none';
+                priceEl.textContent = my.length + ' reserva(s) ativa(s) — clique Pagar';
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
+            return;
+        }
+
+        panel.classList.add('active');
+        var html = '';
+        var total = 0;
+        var firstSector = null;
+        var hasAvailable = false;
+        var hasMyReservation = false;
+
+        selectedSeats.forEach(function(sc) {
+            var obj = selectedTicketObjects[sc];
+            if (!obj) return;
+            if (!firstSector) firstSector = obj.sector;
+            total += obj.price || 0;
+            if (obj.ticket && obj.ticket.usuarioId === currentUserId && obj.ticket.status === 1) {
+                hasMyReservation = true;
+            } else { hasAvailable = true; }
+            html += '<span class="tm-badge tm-badge-vinho" style="font-size:0.75rem;cursor:pointer;" onclick="tmRemoveBadge(\'' + sc + '\')">' + sc + ' <i class="fa-solid fa-xmark"></i></span>';
+        });
+        listEl.innerHTML = html;
+        sectorEl.textContent = firstSector ? (SECTOR_LABELS[firstSector] || firstSector) : '';
+        priceEl.textContent = total > 0 ? 'R$ ' + total.toFixed(2) : '';
+
+        if (hasMyReservation && !hasAvailable) {
+            btnReservar.style.display = 'none';
+            btnPagar.style.display = 'inline-flex';
+            btnCancelar.style.display = 'inline-flex';
+            if (catSelect) catSelect.style.display = 'none';
+            if (catLabel) catLabel.style.display = 'none';
+        } else if (hasAvailable) {
+            btnReservar.style.display = 'inline-flex';
+            btnPagar.style.display = 'none';
+            btnCancelar.style.display = 'none';
+            if (catSelect) { catSelect.style.display = 'inline-block'; 
+                var meiaOpt = catSelect.querySelector('option[value="1"]');
+                if (meiaOpt) meiaOpt.disabled = firstSector ? !sectorHasMeia(firstSector) : true;
+            }
+            if (catLabel) catLabel.style.display = 'inline-block';
+        }
+    }
+
+    window.tmRemoveBadge = function(code) {
+        var obj = selectedTicketObjects[code];
+        if (obj) toggleSeatSelection(obj.ticket, code, obj.sector);
+    };
+
+    // ---------------------------------------------------------------
+    // Seleciona assento (multi)
     // ---------------------------------------------------------------
     function selectSeat(ticket, code, sector) {
-        // Desmarca seleção anterior
-        if (selectedSeatCode) {
-            var prev = document.getElementById(selectedSeatCode);
-            if (prev) {
-                var prevTicket = tickets.find(function (t) { return t.assentoCodigo === selectedSeatCode; });
-                if (prevTicket) {
-                    var prevSector = getSectorFromCode(selectedSeatCode);
-                    var mine = prevTicket.usuarioId === currentUserId && prevTicket.status === 1;
-                    applySvgState(prev, mine ? 'meu' : 'disponivel', prevSector);
-                }
-            }
-        }
-
-        selectedSeatCode = code;
-        var rect = document.getElementById(code);
-        if (rect) applySvgState(rect, 'selecionado', sector);
-
-        document.getElementById('selected-seat').textContent    = 'Assento ' + code;
-        document.getElementById('selected-sector').textContent  = SECTOR_LABELS[sector] || sector;
-
-        // Mostra/oculta opção de meia-entrada
-        var catSelect = document.getElementById('ticket-category');
-        var meiaOpt   = catSelect.querySelector('option[value="1"]');
-        if (meiaOpt) meiaOpt.disabled = !sectorHasMeia(sector);
-        if (!sectorHasMeia(sector)) catSelect.value = '0';
-
-        updatePriceDisplay();
-        document.getElementById('selection-panel').classList.add('active');
+        toggleSeatSelection(ticket, code, sector);
     }
 
-    function updatePriceDisplay() {
-        if (!selectedSeatCode) return;
-        var cat     = document.getElementById('ticket-category').value;
-        var price   = getPriceForSeat(selectedSeatCode, cat);
-        var priceEl = document.getElementById('selected-price');
-        if (price === null) {
-            priceEl.textContent = 'Categoria indisponível neste setor';
-            document.getElementById('btn-reservar').disabled = true;
-        } else {
-            priceEl.textContent = price === 0 ? 'Gratuito' : 'R$ ' + price.toFixed(2).replace('.', ',');
-            document.getElementById('btn-reservar').disabled = false;
-        }
-    }
+    // ---------------------------------------------------------------
+    // Reserva multi-assentos
+    // ---------------------------------------------------------------
+    window.reservarAssentoSelecionado = function () {
+        var codes = selectedSeats.filter(function(sc) {
+            var obj = selectedTicketObjects[sc];
+            return obj && !(obj.ticket && obj.ticket.usuarioId === currentUserId && obj.ticket.status === 1);
+        });
+        if (codes.length === 0) return;
 
-    function reservarAssentoSelecionado() {
-        if (!selectedSeatCode) return;
         var category = document.getElementById('ticket-category').value;
         var form = document.createElement('form');
         form.method = 'post';
-        form.action = '/Ticket/Reservar'
-                    + '?assentoCodigo=' + encodeURIComponent(selectedSeatCode)
-                    + '&eventId='       + encodeURIComponent(eventId)
-                    + '&category='      + encodeURIComponent(category);
+
+        // Reserva o primeiro, depois redireciona para checkout com lista
+        var seatCodes = codes.join(',');
+        form.action = '/Ticket/ReservarMultiplos'
+                    + '?assentosCodigos=' + encodeURIComponent(seatCodes)
+                    + '&eventId='         + encodeURIComponent(eventId)
+                    + '&category='        + encodeURIComponent(category);
         document.body.appendChild(form);
         form.submit();
+    };
+
+    // ---------------------------------------------------------------
+    // Pagar minhas reservas (adiciona ao cart e redireciona)
+    // ---------------------------------------------------------------
+    window.pagarMinhaReserva = function () {
+        var my = findMyReservations();
+        if (my.length === 0) return;
+        window.location.href = '/Ticket/PagarMultiplos?eventId=' + eventId;
+    };
+
+    window.cancelarMinhaReserva = function () {
+        if (selectedSeats.length === 0) return;
+        var codes = selectedSeats.filter(function(sc) {
+            var obj = selectedTicketObjects[sc];
+            return obj && obj.ticket && obj.ticket.usuarioId === currentUserId && obj.ticket.status === 1;
+        });
+        if (codes.length === 0) return;
+        var code = codes[0]; // cancela o primeiro selecionado
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/Ticket/CancelarReserva?assentoCodigo=' + encodeURIComponent(code) + '&eventId=' + encodeURIComponent(eventId);
+        document.body.appendChild(form);
+        form.submit();
+    };
+
+    // ---------------------------------------------------------------
+    // SignalR — Conexão com TicketHub
+    // ---------------------------------------------------------------
+    var connection = null;
+    function initSignalR() {
+        if (!eventId || typeof signalR === 'undefined') return;
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl('/ticketHub')
+            .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+            .build();
+
+        connection.on('AtualizarAssento', function(seatId, statusStr, usuarioId) {
+            var status = statusStr === 'Disponivel' || statusStr === 'Livre' ? 0
+                       : statusStr === 'Reservado' ? 1
+                       : statusStr === 'Vendido' ? 2 : 3;
+            // Atualiza ticket array local com o userId REAL de quem fez a ação
+            var t = tickets.find(function(x) { return x.assentoCodigo === seatId; });
+            if (t) {
+                t.status = status;
+                t.usuarioId = usuarioId || null;
+            }
+            window.applySeatStatus(seatId, status);
+        });
+
+        connection.start().then(function() {
+            connection.invoke('EntrarNaSalaDoEvento', eventId)
+                .catch(function(err) { console.error('Erro ao entrar na sala:', err); });
+        }).catch(function(err) { console.error('SignalR connection error:', err); });
     }
 
-    document.addEventListener('DOMContentLoaded', initSeatMap);
-    document.getElementById('ticket-category').addEventListener('change', updatePriceDisplay);
+    document.addEventListener('DOMContentLoaded', function() {
+        initSeatMap();
+        initSignalR();
+        setTimeout(updateMyReservationBar, 100);
+    });
+
+    document.getElementById('ticket-category').addEventListener('change', function() {
+        // Atualiza preços dos selecionados ao mudar categoria
+        Object.keys(selectedTicketObjects).forEach(function(code) {
+            var obj = selectedTicketObjects[code];
+            if (obj && obj.ticket && !(obj.ticket.usuarioId === currentUserId && obj.ticket.status === 1)) {
+                obj.price = getPriceForSeat(code, this.value);
+            }
+        }.bind(this));
+        updateSelectionPanel();
+    });
 
     // ---------------------------------------------------------------
     // SignalR callback — atualiza estado de assento em tempo real

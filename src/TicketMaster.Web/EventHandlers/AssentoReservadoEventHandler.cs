@@ -25,9 +25,10 @@ public sealed class AssentoReservadoEventHandler : INotificationHandler<AssentoR
             "Assento {Assento} reservado no evento {EventId}",
             notification.AssentoCodigo, notification.EventId);
 
+        var userIdStr = notification.UsuarioId?.ToString() ?? "";
         await _hubContext.Clients
             .Group(notification.EventId.ToString())
-            .SendAsync("AtualizarAssento", notification.AssentoCodigo, "Reservado", cancellationToken);
+            .SendAsync("AtualizarAssento", notification.AssentoCodigo, "Reservado", userIdStr, cancellationToken);
 
         await _cache.RemoveAsync($"tickets:evento:{notification.EventId}", cancellationToken);
     }
