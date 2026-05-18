@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "Pagamento";
     var reservas = ViewBag.Reservas as List<TicketMaster.Domain.Entities.Ticket> ?? new();
-    var qrCodes = ViewBag.QrCodes as List<object> ?? new();
+    var qrBase64 = ViewBag.QrCodeBase64 as string ?? "";
     var eventName = ViewBag.EventName as string ?? "Evento";
     var eventId = ViewBag.EventId as Guid?;
 }
@@ -82,31 +82,21 @@
                         </form>
                     </div>
 
-                    @* PIX *@
+                    @* PIX — QR único para o pagamento inteiro *@
                     <div id="payment-pix" style="display:none;">
                         <div style="text-align:center;padding:1.5rem 0;">
-                            @if (qrCodes.Count > 0)
+                            @if (!string.IsNullOrEmpty(qrBase64))
                             {
-                                var qr = qrCodes[0] as dynamic;
-                                <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;">
-                                    @foreach (var q in qrCodes)
-                                    {
-                                        var item = q as dynamic;
-                                        <div style="text-align:center;">
-                                            <p style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;">@item.seat</p>
-                                            <img src="data:image/png;base64,@item.qrBase64" style="width:160px;border-radius:var(--radius-sm);" />
-                                        </div>
-                                    }
-                                </div>
+                                <img src="data:image/png;base64,@qrBase64" style="width:220px;border-radius:var(--radius-sm);margin-bottom:1rem;" />
                             }
-                            <p style="color:var(--text-muted);font-size:0.85rem;margin-top:1rem;">
-                                <i class="fa-solid fa-clock me-1"></i>PIX simulado — use o QR Code para testar
+                            <p style="color:var(--text-secondary);font-size:0.85rem;">
+                                <i class="fa-solid fa-clock me-1"></i>PIX simulado — @reservas.Count ingresso(s)
                             </p>
                             <form method="post" asp-action="ConfirmarPagamento">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="eventId" value="@eventId" />
                                 <input type="hidden" name="metodo" value="pix" />
-                                <button type="submit" class="tm-btn tm-btn-primary w-100 mt-2">
+                                <button type="submit" class="tm-btn tm-btn-primary w-100 mt-3">
                                     <i class="fa-regular fa-circle-check me-1"></i>Confirmar Pagamento PIX
                                 </button>
                             </form>

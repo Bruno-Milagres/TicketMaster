@@ -223,7 +223,7 @@ public class TicketController : Controller
         else
             TempData["Sucesso"] = $"{assentos.Length} assento(s) reservado(s)!";
 
-        return RedirectToAction(nameof(Checkout), new { codigo = assentos.Length > 0 ? assentos[0] : "", eventId });
+        return RedirectToAction(nameof(PagarMultiplos), new { eventId });
     }
 
     //====================================================================================================================
@@ -248,16 +248,12 @@ public class TicketController : Controller
         ViewBag.Reservas = minhasReservas;
         ViewBag.EventName = evento?.Title ?? "Evento";
 
-        // Gera QR Code PIX mock para cada reserva
+        // Gera UM QR Code PIX para o pagamento inteiro (concatenando todos os assentos)
         var qrService = HttpContext.RequestServices.GetRequiredService<QrCodeService>();
-        var qrCodes = new List<object>();
-        foreach (var r in minhasReservas)
-        {
-            var payload = qrService.GerarPayloadJwt(r.Id, r.EventId, r.AssentoCodigo, userIdString);
-            var qrBytes = qrService.GerarQrCodePng(payload);
-            qrCodes.Add(new { seat = r.AssentoCodigo, qrBase64 = Convert.ToBase64String(qrBytes) });
-        }
-        ViewBag.QrCodes = qrCodes;
+        var codigosAssentos = string.Join(",", minhasReservas.Select(r => r.AssentoCodigo));
+        var pixPayload = qrService.GerarPayloadJwt(minhasReservas.First().Id, eventId, codigosAssentos, userIdString);
+        var qrBytes = qrService.GerarQrCodePng(pixPayload);
+        ViewBag.QrCodeBase64 = Convert.ToBase64String(qrBytes);
 
         return View();
     }
