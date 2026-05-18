@@ -140,11 +140,11 @@
 
     <!-- Botão flutuante de pagamento (quando tem reserva ativa sem seleção) -->
     <div id="my-reservation-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);padding:0.75rem 1rem;z-index:100;">
-        <div class="container" style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;">
+        <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+            <span style="font-size:0.9rem;color:var(--text-secondary);" id="my-reservation-count"></span>
             <button class="tm-btn tm-btn-primary" onclick="pagarMinhaReserva()">
                 <i class="fa-regular fa-circle-check me-1"></i>Pagar Todas as Reservas
             </button>
-            <span style="font-size:0.85rem;color:var(--text-secondary);" id="my-reservation-count"></span>
         </div>
     </div>
 
@@ -452,15 +452,6 @@
     window.pagarMinhaReserva = function () {
         var my = findMyReservations();
         if (my.length === 0) return;
-
-        // Adiciona todas ao cart
-        my.forEach(function(t) {
-            if (t.assentoCodigo) {
-                var sector = getSectorFromCode(t.assentoCodigo);
-                tmCart.add(t.assentoCodigo, eventId, getPriceForSeat(t.assentoCodigo, 0), sector);
-            }
-        });
-        // Redireciona para o pagamento multi
         window.location.href = '/Ticket/PagarMultiplos?eventId=' + eventId;
     };
 
@@ -513,7 +504,6 @@
         initSeatMap();
         initSignalR();
         setTimeout(updateMyReservationBar, 100);
-        tmCart.render();
     });
 
     document.getElementById('ticket-category').addEventListener('change', function() {

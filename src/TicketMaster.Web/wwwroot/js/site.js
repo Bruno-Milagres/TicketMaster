@@ -60,25 +60,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Renderiza carrinho
-    tmCart.render();
-
-    // Toggle cart popup
-    var cartToggle = document.getElementById('cart-toggle');
-    var cartPopup = document.getElementById('cart-popup');
-    if (cartToggle && cartPopup) {
-        cartToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var d = cartPopup.style.display;
-            cartPopup.style.display = d === 'none' ? 'block' : 'none';
-        });
-        document.addEventListener('click', function(e) {
-            if (!cartPopup.contains(e.target) && e.target !== cartToggle) {
-                cartPopup.style.display = 'none';
-            }
-        });
-    }
-
     // Loading states em formulários
     document.querySelectorAll('form[data-loading]').forEach(function(form) {
         form.addEventListener('submit', function() {
@@ -92,93 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ==============================================
-// CART — Carrinho flutuante de reservas
-// ==============================================
-var tmCart = {
-    _items: {},
 
-    load: function () {
-        try {
-            var raw = localStorage.getItem('tm-cart');
-            this._items = raw ? JSON.parse(raw) : {};
-        } catch(e) { this._items = {}; }
-    },
-    save: function () { localStorage.setItem('tm-cart', JSON.stringify(this._items)); },
-    add: function (seatCode, eventId, price, sector) {
-        this._items[seatCode] = { seatCode: seatCode, eventId: eventId, price: price, sector: sector };
-        this.save();
-        this.render();
-    },
-    remove: function (seatCode) {
-        delete this._items[seatCode];
-        this.save();
-        this.render();
-    },
-    clear: function () {
-        this._items = {};
-        this.save();
-        this.render();
-    },
-    getCount: function () { return Object.keys(this._items).length; },
-    getItems: function () { return Object.values(this._items); },
-    render: function () {
-        var count = this.getCount();
-        var badge = document.getElementById('cart-count');
-        var popup = document.getElementById('cart-popup');
-        var list = document.getElementById('cart-items');
-        var totalEl = document.getElementById('cart-total');
-        var payBtn = document.getElementById('cart-pay-btn');
-
-        if (badge) {
-            badge.textContent = count > 0 ? count : '';
-            badge.style.display = count > 0 ? 'flex' : 'none';
-        }
-        if (popup) {
-            popup.style.display = count > 0 ? 'block' : 'none';
-        }
-        if (list) {
-            var items = this.getItems();
-            if (items.length === 0) {
-                list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem;text-align:center;">Nenhuma reserva</p>';
-                if (payBtn) payBtn.style.display = 'none';
-                if (totalEl) totalEl.textContent = '';
-                return;
-            }
-            var html = '';
-            var total = 0;
-            items.forEach(function(i) {
-                html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 1rem;border-bottom:1px solid var(--border);font-size:0.85rem;">' +
-                    '<span><strong>' + i.seatCode + '</strong> <span style="color:var(--text-muted);font-size:0.75rem;">' + (i.sector || '') + '</span></span>' +
-                    '<span style="display:flex;align-items:center;gap:0.5rem;">' +
-                    '<span style="font-family:var(--font-mono);color:var(--gold);">R$ ' + (i.price || 0).toFixed(2) + '</span>' +
-                    '<button onclick="tmCart.remove(\'' + i.seatCode + '\')" style="all:unset;cursor:pointer;color:var(--danger,#EF4444);font-size:0.8rem;"><i class="fa-solid fa-xmark"></i></button></span></div>';
-                total += i.price || 0;
-            });
-            list.innerHTML = html;
-            if (totalEl) totalEl.textContent = 'R$ ' + total.toFixed(2);
-            if (payBtn) {
-                payBtn.style.display = 'inline-flex';
-                payBtn.href = this.payAllUrl() || '#';
-            }
-        }
-    },
-    getEventId: function () {
-        var items = this.getItems();
-        return items.length > 0 ? items[0].eventId : null;
-    },
-    payAllUrl: function () {
-        var eventId = this.getEventId();
-        if (!eventId) return null;
-        return '/Ticket/PagarMultiplos?eventId=' + eventId;
-    }
-};
-
-tmCart.load();
-// Limpa cart se não estiver na página do mapa de assentos (evita itens fantasmas)
-if (window.location.pathname.indexOf('/Ticket/Index') === -1) {
-    tmCart.clear();
-}
 
 // A3 — Toast de feedback
 function showToast(message, type) {
