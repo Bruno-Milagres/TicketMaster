@@ -139,11 +139,13 @@
     </div>
 
     <!-- Botão flutuante de pagamento (quando tem reserva ativa sem seleção) -->
-    <div id="my-reservation-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);padding:0.75rem 1rem;z-index:100;text-align:center;">
-        <button class="tm-btn tm-btn-primary" onclick="pagarMinhaReserva()">
-            <i class="fa-regular fa-circle-check me-1"></i>Pagar Todas as Reservas
-        </button>
-        <span style="font-size:0.8rem;color:var(--text-muted);margin-left:1rem;" id="my-reservation-count"></span>
+    <div id="my-reservation-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);padding:0.75rem 1rem;z-index:100;">
+        <div class="container" style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;">
+            <button class="tm-btn tm-btn-primary" onclick="pagarMinhaReserva()">
+                <i class="fa-regular fa-circle-check me-1"></i>Pagar Todas as Reservas
+            </button>
+            <span style="font-size:0.85rem;color:var(--text-secondary);" id="my-reservation-count"></span>
+        </div>
     </div>
 
 </div>
@@ -478,7 +480,8 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         initSeatMap();
-        updateMyReservationBar();
+        // Delay para garantir que o SVG foi processado
+        setTimeout(updateMyReservationBar, 100);
         tmCart.render();
     });
 
