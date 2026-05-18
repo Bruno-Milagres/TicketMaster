@@ -1064,6 +1064,24 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==============================================
+   CART POPUP
+   ============================================== */
+.cart-popup {
+    display: none;
+    position: fixed;
+    top: calc(var(--navbar-height) + 8px);
+    right: 1rem;
+    width: 340px;
+    max-width: 90vw;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 999;
+    overflow: hidden;
+}
+
+/* ==============================================
    BOOTSTRAP OVERRIDES
    ============================================== */
 .dropdown-menu { background: var(--bg-card); border-color: var(--border); }

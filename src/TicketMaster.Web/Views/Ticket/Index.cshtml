@@ -116,20 +116,34 @@
     <!-- Painel de seleção -->
     <div class="tm-selection-panel" id="selection-panel">
         <div class="tm-selection-info">
-            <span class="tm-selection-seat" id="selected-seat">selecione um assento</span>
-            <span id="selected-sector" style="font-size:.8rem;opacity:.7;display:block;"></span>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;max-height:32px;overflow-y:auto;" id="selected-seats-list"></div>
+            <span id="selected-sector" style="font-size:.8rem;opacity:.7;display:block;margin-top:0.25rem;"></span>
             <span class="tm-selection-price" id="selected-price"></span>
         </div>
-        <div class="d-flex gap-2 align-items-center">
+        <div class="d-flex gap-2 align-items-center" id="selection-actions">
             <label class="tm-form-label mb-0" for="ticket-category" style="white-space:nowrap;">Tipo:</label>
-            <select class="tm-form-control" id="ticket-category" style="min-width:130px;">
+            <select class="tm-form-control" id="ticket-category" style="min-width:120px;">
                 <option value="0">Inteira</option>
                 <option value="1">Meia-entrada</option>
             </select>
-            <button class="tm-btn tm-btn-primary" id="btn-reservar" onclick="reservarAssentoSelecionado()">
+            <button class="tm-btn tm-btn-primary tm-btn-sm" id="btn-reservar" onclick="reservarAssentoSelecionado()">
                 <i class="fa-regular fa-circle-check me-1"></i>Reservar
             </button>
+            <button class="tm-btn tm-btn-success tm-btn-sm" id="btn-pagar-minha" style="display:none;" onclick="pagarMinhaReserva()">
+                <i class="fa-regular fa-circle-check me-1"></i>Pagar
+            </button>
+            <button class="tm-btn tm-btn-danger tm-btn-sm" id="btn-cancelar-minha" style="display:none;" onclick="cancelarMinhaReserva()">
+                <i class="fa-solid fa-xmark me-1"></i>Cancelar
+            </button>
         </div>
+    </div>
+
+    <!-- Botão flutuante de pagamento (quando tem reserva ativa sem seleção) -->
+    <div id="my-reservation-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top:1px solid var(--border);padding:0.75rem 1rem;z-index:100;text-align:center;">
+        <button class="tm-btn tm-btn-primary" onclick="pagarMinhaReserva()">
+            <i class="fa-regular fa-circle-check me-1"></i>Pagar Todas as Reservas
+        </button>
+        <span style="font-size:0.8rem;color:var(--text-muted);margin-left:1rem;" id="my-reservation-count"></span>
     </div>
 
 </div>
@@ -146,7 +160,13 @@
         p.Sector, Category = (int)p.Category, p.Price
     }), camelCase));
 
-    var selectedSeatCode = null;
+    // Multi-seleção: array de códigos selecionados
+    var selectedSeats = [];
+    var selectedTicketObjects = {};
+    // Categoria global (a mesma para todos ao reservar)
+    var globalCategory = 0;
+    // Minhas reservas ativas no carregamento
+    var myReservations = [];
 
     // ---------------------------------------------------------------
     // Mapeia código do assento → setor de domínio
