@@ -62,10 +62,6 @@
 
                     <div class="d-flex align-items-center gap-2 ms-2">
                         <partial name="_LoginPartial" />
-                        <button id="cart-toggle" class="btn-theme-toggle" title="Minhas reservas" aria-label="Carrinho" style="position:relative;">
-                            <i class="fa-solid fa-cart-shopping"></i>
-                            <span id="cart-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.6rem;display:flex;align-items:center;justify-content:center;font-weight:700;"></span>
-                        </button>
                         <button id="btn-theme-toggle" class="btn-theme-toggle" title="Alternar tema" aria-label="Alternar tema claro/escuro">
                             <i class="fa-solid fa-sun"></i>
                         </button>
@@ -81,7 +77,12 @@
         </div>
     </main>
 
-    @* Cart popup *@
+    @* Cart — botão flutuante + popup *@
+    <button id="cart-toggle" class="cart-float-btn" title="Minhas reservas" aria-label="Carrinho">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="cart-count" class="cart-badge">0</span>
+    </button>
+
     <div id="cart-popup" class="cart-popup">
         <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
             <strong style="font-size:0.85rem;">Minhas Reservas</strong>

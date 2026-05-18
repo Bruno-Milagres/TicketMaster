@@ -27,7 +27,7 @@ public sealed class ReservaCanceladaEventHandler : INotificationHandler<ReservaC
 
         await _hubContext.Clients
             .Group(notification.EventId.ToString())
-            .SendAsync("AtualizarAssento", notification.AssentoCodigo, "Disponivel", cancellationToken);
+            .SendAsync("AtualizarAssento", notification.AssentoCodigo, "Disponivel", notification.UsuarioId?.ToString() ?? "", cancellationToken);
 
         await _cache.RemoveAsync($"tickets:evento:{notification.EventId}", cancellationToken);
     }

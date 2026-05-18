@@ -128,10 +128,11 @@ var tmCart = {
         var popup = document.getElementById('cart-popup');
         var list = document.getElementById('cart-items');
         var totalEl = document.getElementById('cart-total');
+        var payBtn = document.getElementById('cart-pay-btn');
 
         if (badge) {
-            badge.textContent = count;
-            badge.style.display = count > 0 ? 'inline' : 'none';
+            badge.textContent = count > 0 ? count : '';
+            badge.style.display = count > 0 ? 'flex' : 'none';
         }
         if (popup) {
             popup.style.display = count > 0 ? 'block' : 'none';
@@ -139,7 +140,9 @@ var tmCart = {
         if (list) {
             var items = this.getItems();
             if (items.length === 0) {
-                list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem;text-align:center;">Nenhuma reserva ativa</p>';
+                list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:1rem;text-align:center;">Nenhuma reserva</p>';
+                if (payBtn) payBtn.style.display = 'none';
+                if (totalEl) totalEl.textContent = '';
                 return;
             }
             var html = '';
@@ -152,6 +155,10 @@ var tmCart = {
             });
             list.innerHTML = html;
             if (totalEl) totalEl.textContent = 'R$ ' + total.toFixed(2);
+            if (payBtn) {
+                payBtn.style.display = 'inline-flex';
+                payBtn.href = this.payAllUrl() || '#';
+            }
         }
     },
     getEventId: function () {

@@ -48,7 +48,7 @@ public sealed class ReservarAssentoHandler : IRequestHandler<ReservarAssentoComm
                 await _quotaService.IncrementarMeiaEntradaAsync(request.EventId, request.AssentoCodigo, cancellationToken);
 
             await _publisher.Publish(new AssentoReservadoNotification(
-                request.EventId, request.AssentoCodigo, "Reservado"), cancellationToken);
+                request.EventId, request.AssentoCodigo, "Reservado", request.UsuarioId), cancellationToken);
 
             return Result.Success();
         }

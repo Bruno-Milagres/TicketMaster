@@ -490,16 +490,15 @@
             .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
             .build();
 
-        connection.on('AtualizarAssento', function(seatId, statusStr) {
-            var status = statusStr === 'Disponivel' ? 0
+        connection.on('AtualizarAssento', function(seatId, statusStr, usuarioId) {
+            var status = statusStr === 'Disponivel' || statusStr === 'Livre' ? 0
                        : statusStr === 'Reservado' ? 1
                        : statusStr === 'Vendido' ? 2 : 3;
-            // Atualiza ticket array local
+            // Atualiza ticket array local com o userId REAL de quem fez a ação
             var t = tickets.find(function(x) { return x.assentoCodigo === seatId; });
             if (t) {
                 t.status = status;
-                // Se é meu, seta usuarioId
-                if (status === 1) t.usuarioId = currentUserId;
+                t.usuarioId = usuarioId || null;
             }
             window.applySeatStatus(seatId, status);
         });

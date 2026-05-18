@@ -24,6 +24,6 @@ public sealed class AssentoLiberadoEventHandler : INotificationHandler<AssentoLi
 
         await _hubContext.Clients
             .Group(notification.EventId.ToString())
-            .SendAsync("AtualizarAssento", notification.AssentoCodigo, "Livre", cancellationToken);
+            .SendAsync("AtualizarAssento", notification.AssentoCodigo, "Livre", notification.UsuarioId?.ToString() ?? "", cancellationToken);
     }
 }

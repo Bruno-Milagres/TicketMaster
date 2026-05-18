@@ -5,5 +5,6 @@ namespace TicketMaster.Application.Notifications;
 public sealed record AssentoLiberadoNotification(
     Guid EventId,
     string AssentoCodigo,
-    string Status
+    string Status,
+    Guid? UsuarioId = null
 ) : INotification;
