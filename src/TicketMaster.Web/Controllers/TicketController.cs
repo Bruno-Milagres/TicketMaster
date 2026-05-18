@@ -375,22 +375,20 @@ public class TicketController : Controller
         {
             return StatusCode(403, new { error = "INVALID_TOKEN" });
         }
+    // Helper: extrai setor do código do assento
+    private static string GetSectorFromCode(string code)
+    {
+        if (string.IsNullOrEmpty(code)) return "PlateiaCentro";
+        if (code.StartsWith("FRE-") || code.StartsWith("FRD-")) return "Frisa";
+        if (code.StartsWith("CAME-") || code.StartsWith("CAMD-")) return "Camarote";
+        if (code.StartsWith("BAL-")) return "Balcao";
+        if (code.StartsWith("AC-")) return "Acessibilidade";
+        var c = code[0];
+        if (c >= 'A' && c <= 'E') return "PlateiaFrente";
+        if (c >= 'F' && c <= 'P') return "PlateiaCentro";
+        if (c >= 'Q' && c <= 'V') return "PlateiaFundo";
+        return "PlateiaCentro";
     }
 }
 
 public record ValidateQrRequest(string QrPayload);
-
-// Helper: extrai setor do código do assento
-internal static string GetSectorFromCode(string code)
-{
-    if (string.IsNullOrEmpty(code)) return "PlateiaCentro";
-    if (code.StartsWith("FRE-") || code.StartsWith("FRD-")) return "Frisa";
-    if (code.StartsWith("CAME-") || code.StartsWith("CAMD-")) return "Camarote";
-    if (code.StartsWith("BAL-")) return "Balcao";
-    if (code.StartsWith("AC-")) return "Acessibilidade";
-    var c = code[0];
-    if (c >= 'A' && c <= 'E') return "PlateiaFrente";
-    if (c >= 'F' && c <= 'P') return "PlateiaCentro";
-    if (c >= 'Q' && c <= 'V') return "PlateiaFundo";
-    return "PlateiaCentro";
-}
