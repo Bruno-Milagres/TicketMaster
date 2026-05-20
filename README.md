@@ -24,7 +24,6 @@ Sistema de gerenciamento de tickets desenvolvido em .NET com arquitetura limpa.
 
 2. Suba os serviços de infraestrutura:
    ```bash
-   cp .env.example .env
    docker-compose up -d
    ```
 
