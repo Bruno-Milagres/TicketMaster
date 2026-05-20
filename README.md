@@ -1,6 +1,6 @@
 # TicketMaster
 
-Sistema de gerenciamento de tickets desenvolvido em .NET com arquitetura limpa.
+Sistema de gerenciamento de tickets desenvolvido em .NET com clean architecture.
 
 ## Tecnologias
 
